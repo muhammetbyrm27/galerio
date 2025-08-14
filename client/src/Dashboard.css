@@ -1,0 +1,181 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&display=swap');
+
+:root {
+  --bg-gradient: linear-gradient(135deg, #3a7bd5, #3a6073, #6a3093, #a044ff);
+  --text-light: #ffffff;
+  --text-muted: #e2e8f0;
+  --text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.dashboard-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+  font-family: 'Montserrat', sans-serif;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  
+  background: var(--bg-gradient);
+  background-size: 300% 300%;
+  animation: gradient-flow 20s ease infinite;
+}
+
+@keyframes gradient-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.dashboard-container {
+  width: 100%;
+  max-width: 900px;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 2.5rem 3rem;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 2;
+  color: var(--text-light);
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: absolute;
+  top: 20px;
+  left: 3rem;
+  right: 3rem;
+  font-weight: 600;
+}
+
+.logout-button {
+  background-color: rgba(255, 77, 77, 0.2);
+  color: #ff4d4d;
+  border: 1px solid #ff4d4d;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.logout-button:hover {
+  background-color: #ff4d4d;
+  color: white;
+  transform: scale(1.05);
+}
+
+.dashboard-content {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.title-section h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin: 0;
+  text-shadow: var(--text-shadow);
+}
+
+.title-section p {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  margin-bottom: 3rem;
+}
+
+.navigation-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+.navigation-buttons button {
+  padding: 1rem;
+  font-size: 1rem;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  color: var(--text-light);
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.navigation-buttons button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* *** KESİN ÇÖZÜM 1: Butona 'position: relative' ekliyoruz *** */
+.messages-button {
+  position: relative; /* Bu satır, bildirim balonunun kendisine göre konumlanmasını sağlar */
+}
+
+/* *** KESİN ÇÖZÜM 2: Bildirim balonunun stilleri *** */
+.notification-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #e74c3c;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(231, 76, 60, 0.7);
+  border: 2px solid rgba(0,0,0,0.2);
+  animation: pop-in 0.3s ease-out; /* Küçük bir animasyon */
+}
+
+@keyframes pop-in {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Arkaplan Araba Animasyonları */
+.car-animation-lane {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1; 
+  overflow: hidden;
+}
+
+.car {
+  position: absolute;
+  width: 120px;
+  height: 40px;
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 10px 10px 0 0;
+  animation: drive linear infinite;
+}
+
+.car::before { content: ''; position: absolute; top: -15px; left: 25px; width: 60px; height: 25px; background-color: rgba(0, 0, 0, 0.15); border-radius: 8px 8px 0 0; }
+.car::after { content: ''; position: absolute; bottom: -10px; left: 15px; width: 25px; height: 25px; background-color: rgba(0, 0, 0, 0.3); border-radius: 50%; box-shadow: 60px 0 0 rgba(0, 0, 0, 0.3); }
+
+@keyframes drive {
+  from { transform: translateX(-200px); }
+  to { transform: translateX(100vw); }
+}
+
+.car:nth-child(1) { top: 20%; animation-duration: 12s; animation-delay: -5s; }
+.car:nth-child(2) { top: 40%; animation-duration: 9s; }
+.car:nth-child(3) { top: 65%; animation-duration: 15s; animation-delay: -8s; }
+.car:nth-child(4) { top: 80%; animation-duration: 10s; animation-delay: -2s; }

@@ -1,0 +1,687 @@
+/* MessagesPage.css */
+.messages-page-container {
+  display: flex;
+  height: 100vh;
+  background: #f5f6fa;
+}
+
+.conversations-sidebar {
+  width: 380px;
+  background: white;
+  border-right: 1px solid #e1e8ed;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid #e1e8ed;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.refresh-btn {
+  background: #3498db;
+  border: none;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+  background: #2980b9;
+  transform: rotate(360deg);
+}
+
+.conversations-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.conversation-item {
+  display: flex;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f2f5;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.conversation-item:hover {
+  background: #f8f9fa;
+}
+
+.conversation-item.active {
+  background: #e3f2fd;
+  border-right: 3px solid #3498db;
+}
+
+.conversation-avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.conversation-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.conversation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.conversation-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  
+}
+
+.conversation-time {
+  font-size: 0.75rem;
+  color: #7f8c8d;
+  white-space: nowrap;
+}
+
+.vehicle-info {
+  margin-bottom: 4px;
+}
+
+.vehicle-name {
+  font-size: 0.8rem;
+  color: #3498db;
+  font-weight: 500;
+}
+
+.last-message {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.no-conversations {
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.no-conversations p {
+  color: #7f8c8d;
+  font-size: 1rem;
+}
+
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+}
+
+.no-chat-selected {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafbfc;
+}
+
+.no-chat-content {
+  text-align: center;
+  padding: 40px;
+}
+
+.no-chat-content h3 {
+  color: #2c3e50;
+  margin-bottom: 10px;
+  font-size: 1.5rem;
+}
+
+.no-chat-content p {
+  color: #7f8c8d;
+  font-size: 1rem;
+}
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #f5f6fa;
+}
+
+.loading-spinner {
+  padding: 20px 40px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #f5f6fa;
+  text-align: center;
+}
+
+.error-container p {
+  color: #e74c3c;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+}
+
+.error-container button {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.error-container button:hover {
+  background: #2980b9;
+}
+/* Bu kodları dosyanın sonuna ekleyin */
+
+.sidebar-header {
+  position: relative;
+  /* Başlığı ortalamak ve butonlara yer açmak için */
+  justify-content: center; 
+}
+
+.back-to-dashboard-btn {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #ecf0f1;
+    color: #34495e;
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.back-to-dashboard-btn:hover {
+    background: #dfe6e9;
+    border-color: #95a5a6;
+}
+
+/* Yenile butonunu sağa yaslamak için */
+.refresh-btn {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+/* BU KODLARI MEVCUT MessagesPage.css DOSYANIZIN EN SONUNA EKLEYİN */
+
+.conversation-item {
+  position: relative; 
+}
+
+.delete-conversation-btn {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  opacity: 0; 
+  transition: opacity 0.2s, color 0.2s;
+  color: #7f8c8d;
+}
+
+.conversation-item:hover .delete-conversation-btn {
+  opacity: 0.6; 
+}
+
+.delete-conversation-btn:hover {
+  opacity: 1;
+  color: #e74c3c; 
+}
+
+.sidebar-header {
+  position: relative;
+  justify-content: center; 
+}
+
+.back-to-dashboard-btn {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #ecf0f1;
+    color: #34495e;
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.back-to-dashboard-btn:hover {
+    background: #dfe6e9;
+    border-color: #95a5a6;
+}
+
+.refresh-btn {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+/* MessagesPage.css dosyasına bu stilleri ekleyin */
+
+/* Okunmamış konuşma öğesi */
+.conversation-item.unread {
+  background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%);
+  border-left: 4px solid #007bff;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+  animation: subtle-pulse 2s ease-in-out infinite;
+}
+
+/* Okunmamış konuşma hover efekti */
+.conversation-item.unread:hover {
+  background: linear-gradient(135deg, #d7ebf9 0%, #e6f2ff 100%);
+  transform: translateX(2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+}
+
+/* Avatar'daki okunmamış mesaj badge'i */
+.conversation-avatar {
+  position: relative;
+}
+
+.unread-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #dc3545;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  animation: badge-bounce 0.5s ease-out;
+}
+
+/* Okunmamış kullanıcı adı */
+.unread-name {
+  font-weight: 700 !important;
+  color: #0056b3 !important;
+}
+
+/* Okunmamış mesaj metni */
+.last-message.unread-message {
+  font-weight: 600;
+  color: #333;
+  background: rgba(0, 123, 255, 0.05);
+  padding: 4px 8px;
+  border-radius: 8px;
+  margin-top: 4px;
+}
+
+/* Okunmamış mesaj indikatörü */
+.unread-indicator {
+  color: #007bff;
+  font-size: 12px;
+  margin-left: 5px;
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+/* Animasyonlar */
+@keyframes subtle-pulse {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+  }
+}
+
+@keyframes badge-bounce {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+
+ /* .conversations-list {
+  
+}  */
+
+.conversation-item.unread {
+  order: -1; /* Flexbox kullanıyorsanız bu okunmamış öğeleri üste taşır */
+}
+
+/* Responsive tasarım */
+@media (max-width: 768px) {
+  .unread-badge {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
+  
+  .conversation-item.unread {
+    border-left-width: 3px;
+  }
+}
+
+/* Dark mode desteği (opsiyonel) */
+@media (prefers-color-scheme: dark) {
+  .conversation-item.unread {
+    background: linear-gradient(135deg, #1a2332 0%, #2d3748 100%);
+    border-left-color: #4299e1;
+  }
+  
+  .conversation-item.unread:hover {
+    background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+  }
+  
+  .unread-name {
+    color: #63b3ed !important;
+  }
+  
+  .last-message.unread-message {
+    background: rgba(66, 153, 225, 0.1);
+    color: #e2e8f0;
+  }
+}
+
+/* Okunmamış mesaj sayısı için ek stiller */
+.conversation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.conversation-time {
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+}
+
+/* Seçili ve okunmamış konuşma */
+.conversation-item.unread.active {
+  background: linear-gradient(135deg, #cce7ff 0%, #e6f2ff 100%);
+  border-left-color: #0056b3;
+}
+.conversation-item.unread {
+  background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+  border-left: 4px solid #2196f3;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+}
+
+.unread-badge {
+  background: #f44336;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: bold;
+  animation: pulse 2s infinite;
+}
+/* ===================================
+   ADMIN BİLDİRİM SİSTEMİ CSS EKLENTİLERİ
+   MessagesPage.css dosyasına eklenecek
+   =================================== */
+
+/* Okunmamış konuşma container'ı */
+.conversation-item.unread {
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  border-left: 4px solid #2196f3;
+  box-shadow: 0 2px 12px rgba(33, 150, 243, 0.25);
+  transform: translateX(2px);
+  transition: all 0.3s ease;
+}
+
+.conversation-item.unread:hover {
+  box-shadow: 0 4px 16px rgba(33, 150, 243, 0.35);
+  transform: translateX(0px);
+}
+
+/* Konuşma avatar'ı - okunmamış mesaj badge'i */
+.conversation-avatar {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  background: #2196f3;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+/* Okunmamış mesaj badge'i */
+.unread-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background: #f44336;
+  color: white;
+  border: 2px solid white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: bold;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse-badge 2s infinite;
+  z-index: 10;
+}
+
+@keyframes pulse-badge {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 5px rgba(244, 67, 54, 0.3);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(244, 67, 54, 0);
+  }
+}
+
+/* Okunmamış kullanıcı adı */
+.unread-name {
+  color: #1976d2 !important;
+  font-weight: bold !important;
+  text-shadow: 0 0 1px rgba(25, 118, 210, 0.3);
+}
+
+/* Okunmamış mesaj metni */
+.unread-message {
+  color: #333 !important;
+  font-weight: 600 !important;
+  position: relative;
+}
+
+/* Okunmamış mesaj indikatörü */
+.unread-indicator {
+  color: #2196f3;
+  font-weight: bold;
+  font-size: 12px;
+  margin-left: 5px;
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.3; }
+}
+
+/* Konuşma item hover efekti - okunmamış için */
+.conversation-item.unread:hover .conversation-avatar {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(33, 150, 243, 0.4);
+}
+
+/* Okunmamış konuşma - sol border animasyonu */
+.conversation-item.unread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(45deg, #2196f3, #21cbf3, #2196f3);
+  background-size: 200% 200%;
+  animation: gradient-slide 3s ease infinite;
+}
+
+@keyframes gradient-slide {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Konuşma zamanı - okunmamış için vurgu */
+.conversation-item.unread .conversation-time {
+  color: #1976d2 !important;
+  font-weight: bold !important;
+}
+
+/* Ana container'da okunmamış durumu */
+.conversations-list {
+  position: relative;
+}
+
+.conversation-item {
+  position: relative;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #eee;
+}
+
+/* Normal (okunmuş) konuşmalar için stil */
+.conversation-item:not(.unread):hover {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+}
+
+/* Active conversation stili */
+.conversation-item.active {
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+}
+
+.conversation-item.active.unread {
+  background: linear-gradient(135deg, #e3f2fd 0%, #fff3cd 100%);
+  border-left: 4px solid #2196f3;
+}
+
+/* Responsive tasarım */
+@media (max-width: 768px) {
+  .unread-badge {
+    font-size: 10px;
+    min-width: 18px;
+    height: 18px;
+    padding: 1px 4px;
+  }
+
+  .conversation-avatar {
+    width: 45px;
+    height: 45px;
+    font-size: 16px;
+  }
+}
+
+/* Dark mode desteği */
+@media (prefers-color-scheme: dark) {
+  .conversation-item.unread {
+    background: linear-gradient(135deg, #1a237e 0%, #4a148c 100%);
+    border-left-color: #64b5f6;
+    color: #fff;
+  }
+
+  .unread-name {
+    color: #64b5f6 !important;
+  }
+
+  .unread-message {
+    color: #e0e0e0 !important;
+  }
+}

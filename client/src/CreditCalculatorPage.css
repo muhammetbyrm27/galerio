@@ -1,0 +1,197 @@
+/* BU KODUN TAMAMINI KOPYALAYIP MEVCUT CreditCalculatorPage.css DOSYANIZLA DEĞİŞTİRİN */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+:root {
+    --page-bg-start: #1e293b;
+    --page-bg-end: #111827;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --text-light: #f1f5f9;
+    --text-muted: #9ca3af;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --input-bg: rgba(0, 0, 0, 0.2);
+    --primary-blue: #3b82f6;
+    --primary-blue-dark: #2563eb;
+    --table-header-bg: rgba(0, 0, 0, 0.2);
+    --table-row-hover-bg: rgba(255, 255, 255, 0.08);
+}
+
+.credit-page-wrapper {
+  background: linear-gradient(135deg, var(--page-bg-start), var(--page-bg-end));
+  padding: 3rem;
+  min-height: 100vh;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+.main-content-area {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  max-width: 1400px; /* Daha geniş ekranlar için */
+  margin: 0 auto;
+}
+
+/* Kartlar için genel animasyon */
+@keyframes fadeInSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.calculator-card, .results-container > div {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  padding: 2.5rem;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  animation: fadeInSlideUp 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.calculator-card {
+  flex: 1; 
+  max-width: 400px;
+}
+
+.results-container {
+  flex: 2; 
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.calculator-title, h3, h4 {
+  color: var(--text-light);
+  font-weight: 600;
+  margin-top: 0;
+}
+.calculator-title { font-size: 1.6rem; margin-bottom: 0.5rem; }
+h3 { font-size: 1.4rem; margin-bottom: 1.5rem; }
+h4 { font-size: 1.2rem; margin-bottom: 1rem; color: var(--text-muted); }
+
+.required-notice {
+  font-size: 0.8rem; 
+  color: #f87171;
+  margin-bottom: 1.5rem;
+}
+
+.form-group { margin-bottom: 1.2rem; }
+.form-label { display: block; font-size: 0.9rem; font-weight: 500; color: var(--text-muted); margin-bottom: 0.5rem; }
+
+.form-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid #4a5a6e;
+  background-color: var(--input-bg);
+  border-radius: 8px;
+  font-size: 1rem;
+  color: var(--text-light);
+  box-sizing: border-box;
+  transition: all 0.3s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.calculate-btn {
+  width: 100%;
+  padding: 0.9rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  background: var(--primary-blue);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.2s;
+}
+
+.calculate-btn:hover {
+  background-color: var(--primary-blue-dark);
+  box-shadow: 0 5px 20px rgba(59, 130, 246, 0.4);
+  transform: translateY(-2px);
+}
+
+.ozet-bilgiler { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 1.5rem; 
+  background-color: rgba(0,0,0,0.15); 
+  padding: 1.5rem; 
+  border-radius: 12px; 
+  margin-bottom: 2rem; 
+  font-size: 1rem; 
+  color: var(--text-muted);
+}
+.ozet-bilgiler strong {
+  color: var(--text-light);
+}
+
+table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  font-size: 0.9rem; 
+}
+th, td { 
+  padding: 1rem; 
+  text-align: right;
+  border-bottom: 1px solid var(--border-color);
+}
+th { 
+  background-color: var(--table-header-bg); 
+  font-weight: 600; 
+  text-align: center; 
+  color: var(--text-light);
+  border-bottom: 2px solid var(--border-color);
+}
+td {
+  color: var(--text-muted);
+}
+tbody tr:hover {
+  background-color: var(--table-row-hover-bg);
+}
+td:nth-child(2) { text-align: center; }
+
+/* Teklif Kartları */
+.teklif-listesi { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+  gap: 1.5rem; 
+}
+.teklif-karti { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: space-between; 
+  padding: 1.5rem 1rem; 
+  border: 1px solid var(--border-color);
+  background-color: rgba(0,0,0,0.1);
+  border-radius: 12px;
+  transition: all 0.3s;
+}
+.teklif-karti:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary-blue);
+  background-color: rgba(59, 130, 246, 0.1);
+}
+.teklif-karti img { 
+  max-height: 40px; 
+  filter: brightness(0) invert(1); 
+  margin-bottom: 1rem;
+}
+.teklif-butonu { 
+  font-size: 0.9rem; 
+  font-weight: 500;
+  padding: 0.6rem 1.2rem;
+  background-color: var(--primary-blue);
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+.teklif-butonu:hover {
+  background-color: var(--primary-blue-dark);
+}
