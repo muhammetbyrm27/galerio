@@ -1,0 +1,218 @@
+/* BU KODUN TAMAMINI KOPYALAYIP MEVCUT HomePage.css DOSYANIZLA DEĞİŞTİRİN */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* --- YENİ ve PREMIUM KOYU TEMA --- */
+:root {
+    --bg-color: #1a293b; /* Premium koyu mavi-gri arkaplan */
+    --header-bg: #2c3e50; /* Header için biraz daha açık bir ton */
+    --card-bg: #ffffff;
+    --text-light: #f1f5f9; /* Koyu arkaplan üzerindeki ana metinler */
+    --text-muted: #94a3b8; /* Koyu arkaplan üzerindeki ikincil metinler */
+    --text-dark-on-card: #2c3e50; /* Beyaz kart üzerindeki koyu metin */
+    --text-muted-on-card: #6c757d; /* Beyaz kart üzerindeki gri metin */
+    --primary-color: #3b82f6; /* Canlı mavi */
+    --danger-color: #ef4444;
+    --border-color: #374151; /* Koyu tema için border rengi */
+    --shadow-color: rgba(0, 0, 0, 0.25); /* Daha belirgin gölge */
+}
+
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--bg-color);
+}
+
+.home-page-container {
+  color: var(--text-light); /* Sayfanın genel metin rengi açık */
+}
+
+/* --- YENİLENMİŞ HEADER (KOYU TEMA) --- */
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 3rem;
+  background-color: var(--header-bg);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.welcome-message {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.welcome-message span {
+  font-weight: 700;
+  color: var(--text-light);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* --- YENİLENMİŞ BUTONLAR (KOYU TEMA) --- */
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.2rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.action-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-light);
+  border-color: var(--primary-color);
+}
+
+.action-button.logout {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.action-button.logout:hover {
+  background-color: var(--danger-color);
+  border-color: var(--danger-color);
+  color: #fff;
+}
+
+/* --- YENİLENMİŞ İLAN KARTLARI (YÜZEN EFEKT) --- */
+.vehicle-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 2.5rem;
+  padding: 3rem;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+.vehicle-card-item {
+  background-color: var(--card-bg);
+  border: none; /* Kenarlık yerine gölge kullanacağız */
+  border-radius: 16px;
+  box-shadow: 0 8px 25px var(--shadow-color);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.vehicle-card-item:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+}
+
+.card-image-container img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.card-content {
+  padding: 1.5rem;
+  flex-grow: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+/* *** OKUNABİLİRLİK DÜZELTMESİ: Kart içindeki metinler koyu *** */
+.vehicle-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-dark-on-card);
+}
+
+.vehicle-specs {
+  margin: 0;
+  color: var(--text-muted-on-card);
+  font-size: 0.9rem;
+}
+
+.price-tag {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  white-space: nowrap;
+  margin-left: 1rem;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 24px;
+  color: var(--text-light); /* Koyu temaya uygun */
+}
+
+/* --- MODAL STİLLERİ (DEĞİŞİKLİK GEREKMİYOR) --- */
+/* Bu kısımlar olduğu gibi kalabilir, çünkü modal zaten tüm ekranı kaplar */
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; backdrop-filter: blur(5px); }
+.modal-content { background: white; border-radius: 12px; max-width: 1200px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; animation: modalAppear 0.3s ease; }
+@keyframes modalAppear { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+.modal-close-btn { position: absolute; top: 15px; right: 20px; background: #ff4757; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 20px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+.modal-close-btn:hover { background: #e03b46; }
+.modal-body { display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; padding: 30px; }
+.modal-images-section, .image-gallery { width: 100%; }
+.main-image-container { position: relative; width: 100%; padding-top: 66.66%; border-radius: 8px; overflow: hidden; background: #f5f5f5; }
+.main-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+.image-nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background-color: rgba(0, 0, 0, 0.5); color: white; border: none; font-size: 2rem; cursor: pointer; padding: 0 1rem; height: 100%; opacity: 0; transition: opacity 0.3s ease; z-index: 5; }
+.main-image-container:hover .image-nav-btn { opacity: 1; }
+.image-nav-btn.prev { left: 0; border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+.image-nav-btn.next { right: 0; border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+.thumbnail-container { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+.thumbnail { width: 90px; height: 60px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 3px solid transparent; transition: border-color 0.3s ease; }
+.thumbnail:hover { border-color: #3498db; }
+.thumbnail.active { border-color: #2980b9; }
+.modal-info-section { display: flex; flex-direction: column; }
+.vehicle-modal-title { font-size: 2rem; font-weight: 700; color: #2c3e50; margin: 0; border-bottom: 2px solid #e1e8ed; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+.vehicle-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+.detail-item { padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #3498db; }
+.detail-label { font-weight: 600; color: #555; display: block; font-size: 0.9rem; }
+.detail-value { font-weight: 500; color: #2c3e50; font-size: 1rem; }
+.price-section { text-align: right; padding: 1.5rem; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; color: white; margin-bottom: 1.5rem; }
+.price-label { font-size: 1rem; opacity: 0.9; }
+.price-value { font-size: 2.2rem; font-weight: 700; }
+.description-section { background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #27ae60; margin-top: auto; }
+.description-section h4 { margin: 0 0 10px 0; color: #2c3e50; font-size: 1.1rem; }
+.description-section p { margin: 0; line-height: 1.6; color: #555; }
+.message-action-button { width: 100%; padding: 1rem; margin-top: 1.5rem; font-size: 1.1rem; font-weight: bold; color: white; background: linear-gradient(135deg, #27ae60, #2ecc71); border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+.message-action-button:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4); }
+.action-button {
+    position: relative; /* Bildirim balonunu konumlandırmak için gerekli */
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #dc3545; /* Kırmızı renk */
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    border: 2px solid #343a40; /* Butonun arka plan rengiyle uyumlu kenarlık */
+}

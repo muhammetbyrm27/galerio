@@ -1,0 +1,146 @@
+/* BU KODUN TAMAMINI KOPYALAYIP MEVCUT MarketValuePage.css DOSYANIZLA DEĞİŞTİRİN */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+:root {
+    --page-bg-start: #1e293b; /* Koyu tema başlangıç rengi */
+    --page-bg-end: #111827;   /* Koyu tema bitiş rengi */
+    --card-bg: rgba(255, 255, 255, 0.05); /* Buzlu cam efekti için */
+    --text-light: #f1f5f9;
+    --text-muted: #9ca3af;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --input-bg: rgba(0, 0, 0, 0.2);
+    --primary-blue: #3b82f6;
+    --sahibinden-yellow: #f1c40f;
+    --arabam-red: #e74c3c;
+}
+
+.comparison-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--page-bg-start), var(--page-bg-end));
+    padding: 40px 20px;
+    font-family: 'Poppins', sans-serif;
+    box-sizing: border-box;
+}
+
+@keyframes fadeInScaleUp {
+    from { opacity: 0; transform: scale(0.95) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.comparison-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    padding: 2.5rem 3rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    width: 100%;
+    max-width: 900px;
+    border: 1px solid var(--border-color);
+    animation: fadeInScaleUp 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.comparison-card h2 {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
+.comparison-card p {
+    text-align: center;
+    color: var(--text-muted);
+    margin-bottom: 2.5rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select {
+    padding: 0.8rem 1rem;
+    border: 1px solid #4a5a6e;
+    background-color: var(--input-bg);
+    border-radius: 8px;
+    font-size: 1rem;
+    color: var(--text-light);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input::placeholder {
+    color: var(--text-muted);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.button-container {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.search-button {
+    flex: 1;
+    padding: 0.9rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.search-button:hover {
+    transform: translateY(-3px);
+}
+
+.sahibinden-button {
+    background-color: var(--sahibinden-yellow); 
+    color: #333;
+    box-shadow: 0 5px 20px rgba(241, 196, 15, 0.2);
+}
+
+.sahibinden-button:hover {
+    background-color: #f39c12;
+    box-shadow: 0 8px 30px rgba(241, 196, 15, 0.4);
+}
+
+.arabam-button {
+    background-color: var(--arabam-red);
+    box-shadow: 0 5px 20px rgba(231, 76, 60, 0.2);
+}
+
+.arabam-button:hover {
+    background-color: #c0392b;
+    box-shadow: 0 8px 30px rgba(231, 76, 60, 0.4);
+}

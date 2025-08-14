@@ -1,0 +1,187 @@
+ 
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+
+:root {
+  --background: #1e293b; 
+  --card-background: #2b3b4f; 
+  --card-border: #4a5a6e;
+  --primary-accent: #0ea5e9; 
+  --primary-accent-glow: rgba(14, 165, 233, 0.4);
+  --secondary-accent: #10b981; 
+  --text-primary: #e2e8f0; 
+  --text-secondary: #94a3b8; 
+  --danger-color: #f43f5e; 
+  --shadow-color: rgba(0, 0,0, 0.3);
+}
+
+
+.personnel-page-wrapper {
+  font-family: 'Roboto', sans-serif;
+  background-color: var(--background);
+  color: var(--text-primary);
+  padding: 2.5rem;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.personnel-page {
+  max-width: 1600px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+
+.card {
+  background-color: var(--card-background);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 2rem 2.5rem;
+  box-shadow: 0 10px 30px var(--shadow-color);
+}
+
+.card h2 {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 1.6rem;
+  border-bottom: 2px solid var(--primary-accent);
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
+}
+
+
+.personnel-form {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem; 
+}
+
+
+.personnel-form input,
+.personnel-form textarea {
+  background-color: #3b4d66; 
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  padding: 0.9rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
+  width: 100%; 
+}
+
+
+.personnel-form input::placeholder,
+.personnel-form textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+
+.personnel-form input:focus,
+.personnel-form textarea:focus {
+  outline: none;
+  border-color: var(--primary-accent);
+  box-shadow: 0 0 0 3px var(--primary-accent-glow);
+}
+
+
+.date-input-group {
+  display: flex;
+  flex-direction: column; 
+  gap: 0.5rem; 
+  justify-content: flex-start; 
+}
+
+.date-input-group label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+
+.date-input-group input[type="date"] {
+  height: auto; 
+}
+
+
+.address-area-personnel { grid-column: 1 / -1; }
+.form-buttons-personnel { 
+  grid-column: 1 / -1; 
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+}
+
+
+.submit-btn-personnel, .cancel-btn-personnel, .edit-btn, .delete-btn {
+  padding: 0.8rem 1.75rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+
+.submit-btn-personnel {
+  background-color: var(--primary-accent);
+  color: white;
+}
+.submit-btn-personnel:hover {
+  background-color: #0b9ee0; 
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px var(--primary-accent-glow);
+}
+
+
+.cancel-btn-personnel {
+  background-color: #4b5563; 
+}
+.cancel-btn-personnel:hover { background-color: #6b7280; }
+
+
+.table-header { color: var(--text-primary); }
+.filter-input {
+  background-color: #3b4d66;
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+}
+.filter-input:focus {
+    outline: none;
+    border-color: var(--primary-accent);
+}
+
+.table-wrapper { overflow-x: auto; margin-top: 1.5rem;}
+table { width: 100%; border-collapse: collapse; }
+th, td {
+  padding: 1rem 1.1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--card-border);
+  font-size: 0.9rem;
+}
+thead th { 
+  color: var(--text-primary); 
+  font-weight: 700; 
+  background-color: rgba(0,0,0,0.15);
+}
+tbody tr { transition: background-color 0.2s ease; }
+tbody tr:hover { background-color: #374a61; }
+
+.action-buttons { display: flex; gap: 0.75rem; }
+.edit-btn { background-color: var(--secondary-accent); color: white; }
+.delete-btn { background-color: var(--danger-color); color: white; }
+.edit-btn:hover, .delete-btn:hover { transform: scale(1.08); filter: brightness(1.1); }
+
+.actions-header, .actions-cell {
+  position: sticky; right: 0;
+  background: var(--card-background);
+}
+tbody tr:hover .actions-cell {
+  background: #374a61;
+} 
+ 

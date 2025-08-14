@@ -1,0 +1,118 @@
+/* BU KODUN TAMAMINI KOPYALAYIP MEVCUT LoginPage.css DOSYANIZLA DEĞİŞTİRİN */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+:root {
+  --primary-blue: #3b82f6;
+  --primary-blue-dark: #2563eb;
+  --dark-bg-start: #1e293b;
+  --dark-bg-end: #111827;
+  --text-light: #f8fafc;
+  --text-muted: #9ca3af;
+  --border-color: #4b5563;
+}
+
+html {
+  font-size: 85%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  color: var(--text-light);
+}
+
+.login-page-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  background-color: var(--dark-bg-end);
+}
+
+/* Header */
+.login-header {
+  position: absolute; top: 0; left: 0; width: 100%; padding: 1.5rem 3rem;
+  display: flex; justify-content: space-between; align-items: center;
+  z-index: 10; box-sizing: border-box;
+}
+.logo { font-size: 1.5rem; font-weight: 700; color: #fff; text-shadow: 1px 1px 8px rgba(0,0,0,0.7); }
+.main-nav a { color: rgba(255, 255, 255, 0.9); text-decoration: none; margin-left: 2.5rem; font-weight: 500; transition: color 0.3s; text-shadow: 1px 1px 5px rgba(0,0,0,0.5); }
+.main-nav a:hover { color: #fff; }
+
+/* Sol Taraf - Görsel Alanı */
+.visual-section { flex: 1.2; position: relative; display: flex; justify-content: center; align-items: center; text-align: center; padding: 2rem; }
+@keyframes kenBurns { 0% { transform: scale(1.05) translate(0, 0); } 50% { transform: scale(1.15) translate(-2%, 2%); } 100% { transform: scale(1.05) translate(0, 0); } }
+.bg-image { position: absolute; inset: 0; background-size: cover; background-position: center; transition: opacity 1.5s ease-in-out; animation: kenBurns 25s infinite; }
+
+/* *** OKUNABİLİRLİK ÇÖZÜMÜ 1: Overlay güçlendirildi *** */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.3));
+}
+
+.brand-showcase { position: relative; z-index: 2; animation: slideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1); }
+@keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* *** OKUNABİLİRLİK ÇÖZÜMÜ 2: Metin gölgesi güçlendirildi *** */
+.brand-showcase h1 {
+  color: #fff;
+  font-size: 3rem;
+  font-weight: 700;
+  text-shadow: 0px 4px 20px rgba(0, 0, 0, 0.9);
+}
+.brand-showcase p {
+  color: #fff;
+  font-size: 1.2rem;
+  max-width: 500px;
+  margin: 1rem auto 0;
+  font-weight: 400;
+  opacity: 0.9;
+  text-shadow: 0px 2px 10px rgba(0, 0, 0, 0.9);
+}
+
+/* Sağ Taraf - Form Alanı (Premium Koyu Tema) */
+.form-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, var(--dark-bg-start), var(--dark-bg-end));
+  animation: slideInFromRight 1s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes slideInFromRight { from { transform: translateX(50%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+.login-wrapper { width: 100%; max-width: 400px; padding: 2rem; }
+.glass-effect { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); padding: 2.5rem; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
+.role-tabs { display: flex; margin-bottom: 2rem; }
+.tab-button { flex: 1; padding-bottom: 1rem; border: none; background: transparent; cursor: pointer; font-size: 0.95rem; font-weight: 500; color: var(--text-muted); position: relative; transition: color 0.3s; }
+.tab-button:hover { color: var(--text-light); }
+.tab-button.active { color: #fff; font-weight: 600; }
+.tab-button.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 40%; height: 3px; background-color: var(--primary-blue); border-radius: 3px; }
+.admin-tab { flex: 0.7; }
+
+/* Form ve Gecikmeli Animasyonlar */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-form { animation: fadeIn 0.6s ease-in-out forwards; }
+.login-form > * { opacity: 0; animation: fadeIn 0.5s ease-out forwards; }
+.login-form h2 { animation-delay: 0.1s; }
+.form-subtitle { animation-delay: 0.2s; }
+.login-form input:nth-of-type(1) { animation-delay: 0.3s; }
+.login-form input:nth-of-type(2) { animation-delay: 0.4s; }
+.login-form input:nth-of-type(3) { animation-delay: 0.5s; }
+.login-form button { animation-delay: 0.6s; }
+.login-form .form-links, .login-form .error { animation-delay: 0.7s; }
+
+.login-form h2 { margin-top: 0; margin-bottom: 0.5rem; font-size: 1.8rem; font-weight: 600; }
+.form-subtitle { color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem; }
+.login-form input { width: 100%; padding: 14px 16px; margin-bottom: 1.2rem; border: 1px solid var(--border-color); background-color: rgba(0,0,0,0.2); border-radius: 8px; font-size: 1rem; color: #fff; box-sizing: border-box; transition: all 0.3s; }
+.login-form input::placeholder { color: var(--text-muted); }
+.login-form input:focus { outline: none; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); }
+.login-form button[type="submit"] { width: 100%; padding: 14px; background: var(--primary-blue); border: none; border-radius: 8px; color: white; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 1rem; }
+.login-form button[type="submit"]:hover { background-color: var(--primary-blue-dark); box-shadow: 0 5px 20px rgba(59, 130, 246, 0.4); transform: translateY(-2px); }
+.form-links { text-align: right; margin-top: 1rem; }
+.form-links span { color: #60a5fa; cursor: pointer; font-size: 0.9rem; font-weight: 500; }
+.form-links span:hover { text-decoration: underline; }
+.error { color: #f87171; margin-top: 15px; font-weight: 500; font-size: 0.9rem; }
