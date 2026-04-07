@@ -11,3 +11,36 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* === GENEL MOBİL MİNAMALİZASYONU === */
+@media screen and (max-width: 768px) {
+  html {
+    font-size: 13px !important; 
+  }
+  
+  .card-image-container img {
+     min-height: 200px !important;
+     width: 100% !important;
+     display: block !important;
+  }
+  
+  /* Tüm padding ve marginleri biraz daraltarak minimal tutalım */
+  * {
+    box-sizing: border-box;
+  }
+
+  .home-header {
+    padding: 10px !important;
+    gap: 8px !important;
+  }
+
+  .vehicle-gallery {
+    padding: 10px !important;
+    gap: 10px !important;
+  }
+  
+  .action-button {
+    padding: 0.5rem 0.8rem !important;
+    font-size: 0.8rem !important;
+  }
+}
