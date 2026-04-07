@@ -6,7 +6,6 @@ const jwt = require('jsonwebtoken');
 const mysql = require('mysql2');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
-const sgTransport = require('nodemailer-sendgrid-transport');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -27,7 +26,10 @@ const io = new Server(server, {
     }
 });
 
-app.use(cors());
+app.use(cors({
+    origin: process.env.CLIENT_URL || '*',
+    credentials: true
+}));
 app.use(bodyParser.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -88,10 +90,20 @@ const upload = multer({
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
-if (!process.env.SENDGRID_API_KEY) {
-    console.warn("⚠️ UYARI: SENDGRID_API_KEY .env dosyasında bulunamadı! E-posta özellikleri çalışmayacak.");
+// E-posta transporter - Gmail SMTP veya SendGrid
+let emailTransporter = null;
+if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+    emailTransporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.GMAIL_USER,
+            pass: process.env.GMAIL_APP_PASSWORD
+        }
+    });
+    console.log('✅ Gmail SMTP e-posta servisi yapılandırıldı.');
 } else {
-    console.log("✅ SendGrid API anahtarı bulundu.");
+    console.warn('⚠️ UYARI: GMAIL_USER ve GMAIL_APP_PASSWORD bulunamadı! E-posta özellikleri çalışmayacak.');
+    console.warn('📧 Şifre sıfırlama kodları konsola yazdırılacak.');
 }
 
 
@@ -164,16 +176,15 @@ app.post('/api/request-password-reset', async (req, res) => {
             [resetCode, expires, user.id]
         );
 
-        if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_FROM_EMAIL) {
-             console.error("❌ SendGrid yapılandırması eksik. E-posta gönderilemedi.");
-             console.log(`Geliştirme | Şifre sıfırlama kodu (${user.email}): ${resetCode}`);
-             return res.status(200).json({ message: `[DEV] E-posta gönderimi kapalı. Kod konsola yazdırıldı.` });
+        if (!emailTransporter) {
+             console.warn(`⚠️ E-posta servisi yapılandırılmamış. Kod konsola yazdırılıyor.`);
+             console.log(`📧 Şifre sıfırlama kodu (${user.email}): ${resetCode}`);
+             return res.status(200).json({ message: `Şifre sıfırlama kodu gönderildi. (Demo mod: kod konsolda görüntülenir)` });
         }
         
-        const transporter = nodemailer.createTransport(sgTransport({ auth: { api_key: process.env.SENDGRID_API_KEY } }));
         const mailOptions = {
             to: user.email,
-            from: process.env.SENDGRID_FROM_EMAIL,
+            from: process.env.GMAIL_USER || 'noreply@galerio.com',
             subject: 'Şifre Sıfırlama İsteği',
             html: `
                 <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
@@ -186,7 +197,7 @@ app.post('/api/request-password-reset', async (req, res) => {
             `
         };
 
-        await transporter.sendMail(mailOptions);
+        await emailTransporter.sendMail(mailOptions);
         
         console.log(`✅ Şifre sıfırlama kodu e-postası gönderildi: ${user.email}`);
         res.status(200).json({ message: `Şifre sıfırlama kodu ${user.email} adresine başarıyla gönderildi.` });
@@ -984,10 +995,10 @@ app.get('/api/conversations', authenticateToken, requireAdmin, async (req, res) 
 });
 const cleanupOldMessages = async () => {
     try {
-        const threeDaysAgo = new Date();
-        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setDate(oneMonthAgo.getDate() - 30);
         
-        const [result] = await db.query("DELETE FROM messages WHERE created_at < ?", [threeDaysAgo]);
+        const [result] = await db.query("DELETE FROM messages WHERE created_at < ?", [oneMonthAgo]);
         
         if (result.affectedRows > 0) {
             console.log(`✅ ${result.affectedRows} adet eski mesaj başarıyla silindi.`);
@@ -1001,7 +1012,7 @@ const cleanupOldMessages = async () => {
 cron.schedule('0 0 * * *', cleanupOldMessages, { 
     timezone: "Europe/Istanbul" 
 });
-console.log('⏰ Otomatik mesaj temizleme görevi, her gün gece yarısı 3 günden eski mesajları silecek şekilde ayarlandı.');
+console.log('⏰ Otomatik mesaj temizleme görevi, her gün gece yarısı 30 günden eski mesajları silecek şekilde ayarlandı.');
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
