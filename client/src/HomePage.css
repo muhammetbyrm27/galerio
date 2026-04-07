@@ -216,3 +216,45 @@ body {
     font-weight: bold;
     border: 2px solid #343a40; /* Butonun arka plan rengiyle uyumlu kenarlık */
 }
+
+/* === MOBİL UYUMLULUK (RESPONSIVE) === */
+@media (max-width: 768px) {
+  .home-header {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+  }
+  
+  .welcome-message {
+    text-align: center;
+  }
+  
+  .header-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .vehicle-gallery {
+    grid-template-columns: 1fr;
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+
+  .modal-content {
+    width: 95%;
+  }
+
+  .modal-body {
+    grid-template-columns: 1fr;
+    padding: 15px;
+    gap: 15px;
+  }
+
+  .vehicle-modal-title {
+    font-size: 1.5rem;
+  }
+
+  .vehicle-details-grid {
+    grid-template-columns: 1fr;
+  }
+}

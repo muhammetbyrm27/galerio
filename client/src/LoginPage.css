@@ -116,3 +116,42 @@ body {
 .form-links span { color: #60a5fa; cursor: pointer; font-size: 0.9rem; font-weight: 500; }
 .form-links span:hover { text-decoration: underline; }
 .error { color: #f87171; margin-top: 15px; font-weight: 500; font-size: 0.9rem; }
+
+/* === MOBİL UYUMLULUK (RESPONSIVE) === */
+@media (max-width: 768px) {
+  .login-page-container {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .login-header {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .main-nav a {
+    margin-left: 1rem;
+    margin-right: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .visual-section {
+    display: none; /* Mobilde yerden tasarruf için resmi gizle */
+  }
+
+  .form-section {
+    flex: none;
+    min-height: 100vh;
+    padding: 1rem;
+  }
+
+  .login-wrapper {
+    padding: 1rem;
+    max-width: 100%;
+  }
+
+  .glass-effect {
+    padding: 1.5rem;
+  }
+}

@@ -179,3 +179,29 @@
 .car:nth-child(2) { top: 40%; animation-duration: 9s; }
 .car:nth-child(3) { top: 65%; animation-duration: 15s; animation-delay: -8s; }
 .car:nth-child(4) { top: 80%; animation-duration: 10s; animation-delay: -2s; }
+
+/* === MOBİL UYUMLULUK (RESPONSIVE) === */
+@media (max-width: 768px) {
+  .dashboard-wrapper {
+    padding: 1rem;
+  }
+  .dashboard-container {
+    padding: 1.5rem;
+  }
+  .dashboard-header {
+    position: relative;
+    top: 0;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .title-section h1 {
+    font-size: 1.8rem;
+  }
+  .navigation-buttons {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+}

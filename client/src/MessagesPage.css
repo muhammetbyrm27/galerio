@@ -655,6 +655,18 @@
 
 /* Responsive tasarım */
 @media (max-width: 768px) {
+  .messages-page-container {
+    flex-direction: column;
+  }
+  .conversations-sidebar {
+    width: 100%;
+    /* mobilde de tam ekran veya min-height almak için */
+    max-height: 40vh;
+  }
+  .chat-area {
+    width: 100%;
+    height: 60vh;
+  }
   .unread-badge {
     font-size: 10px;
     min-width: 18px;

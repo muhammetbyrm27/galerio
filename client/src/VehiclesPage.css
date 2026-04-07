@@ -303,3 +303,24 @@ tbody tr:hover .sticky-col {
     object-fit: cover;
     border-radius: 4px;
 }
+
+/* === MOBİL UYUMLULUK (RESPONSIVE) === */
+@media (max-width: 768px) {
+  .vehicle-page-wrapper {
+    padding: 1rem;
+  }
+  .vehicle-page {
+    width: 100%;
+    min-width: 100%;
+  }
+  .form-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .form-container, .table-card {
+    padding: 1rem;
+  }
+  .table-wrapper {
+    overflow-x: auto;
+  }
+}
