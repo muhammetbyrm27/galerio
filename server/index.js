@@ -90,18 +90,9 @@ const upload = multer({
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
-// E-posta transporter - Gmail SMTP veya SendGrid
-const sendgridTransport = require('nodemailer-sendgrid-transport');
-
+// E-posta transporter - Sadece Gmail SMTP kullanılacak
 let emailTransporter = null;
-if (process.env.SENDGRID_API_KEY) {
-    emailTransporter = nodemailer.createTransport(sendgridTransport({
-        auth: {
-            api_key: process.env.SENDGRID_API_KEY
-        }
-    }));
-    console.log('✅ SendGrid e-posta servisi yapılandırıldı.');
-} else if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
     emailTransporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
