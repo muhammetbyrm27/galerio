@@ -91,8 +91,17 @@ const upload = multer({
 });
 
 // E-posta transporter - Gmail SMTP veya SendGrid
+const sendgridTransport = require('nodemailer-sendgrid-transport');
+
 let emailTransporter = null;
-if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+if (process.env.SENDGRID_API_KEY) {
+    emailTransporter = nodemailer.createTransport(sendgridTransport({
+        auth: {
+            api_key: process.env.SENDGRID_API_KEY
+        }
+    }));
+    console.log('✅ SendGrid e-posta servisi yapılandırıldı.');
+} else if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
     emailTransporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -102,7 +111,7 @@ if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
     });
     console.log('✅ Gmail SMTP e-posta servisi yapılandırıldı.');
 } else {
-    console.warn('⚠️ UYARI: GMAIL_USER ve GMAIL_APP_PASSWORD bulunamadı! E-posta özellikleri çalışmayacak.');
+    console.warn('⚠️ UYARI: E-posta değişkenleri (SendGrid veya Gmail) bulunamadı!');
     console.warn('📧 Şifre sıfırlama kodları konsola yazdırılacak.');
 }
 
@@ -184,7 +193,7 @@ app.post('/api/request-password-reset', async (req, res) => {
         
         const mailOptions = {
             to: user.email,
-            from: process.env.GMAIL_USER || 'noreply@galerio.com',
+            from: process.env.SENDGRID_FROM_EMAIL || process.env.GMAIL_USER || 'noreply@galerio.com',
             subject: 'Şifre Sıfırlama İsteği',
             html: `
                 <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
