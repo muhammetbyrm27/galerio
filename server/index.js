@@ -90,23 +90,21 @@ const upload = multer({
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
-// E-posta transporter - Sadece Gmail SMTP kullanılacak
+// E-posta transporter - Render Free tier için sadece SendGrid Web API (HTTPS) kullanılabilir, klasik SMTP (Gmail) portları engellidir.
+const sendgridTransport = require('nodemailer-sendgrid-transport');
+
 let emailTransporter = null;
-if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
-    emailTransporter = nodemailer.createTransport({
-        service: 'gmail',
+if (process.env.SENDGRID_API_KEY) {
+    emailTransporter = nodemailer.createTransport(sendgridTransport({
         auth: {
-            user: process.env.GMAIL_USER,
-            pass: process.env.GMAIL_APP_PASSWORD
+            api_key: process.env.SENDGRID_API_KEY
         }
-    });
-    console.log('✅ Gmail SMTP e-posta servisi yapılandırıldı.');
+    }));
+    console.log('✅ SendGrid Web API e-posta servisi yapılandırıldı.');
 } else {
-    console.warn('⚠️ UYARI: E-posta değişkenleri (SendGrid veya Gmail) bulunamadı!');
-    console.warn('📧 Şifre sıfırlama kodları konsola yazdırılacak.');
+    console.warn('⚠️ UYARI: SENDGRID_API_KEY bulunamadı! Render üzerinde SMTP engelli olduğu için e-posta özellikleri çalışmayabilir.');
+    console.warn('📧 Şifre sıfırlama kodları sadece konsola yazdırılacak.');
 }
-
-
 
 app.post('/api/register', async (req, res) => {
     try {
