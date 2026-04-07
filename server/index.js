@@ -177,12 +177,10 @@ app.post('/api/request-password-reset', async (req, res) => {
         const user = users[0];
 
         const resetCode = crypto.randomInt(100000, 999999).toString();
-        const expires = new Date();
-        expires.setMinutes(expires.getMinutes() + 10);
         
         await db.query(
-            'UPDATE users SET sifre_sifirlama_kodu = ?, sifre_sifirlama_gecerlilik = ? WHERE id = ?', 
-            [resetCode, expires, user.id]
+            'UPDATE users SET sifre_sifirlama_kodu = ?, sifre_sifirlama_gecerlilik = DATE_ADD(NOW(), INTERVAL 10 MINUTE) WHERE id = ?', 
+            [resetCode, user.id]
         );
 
         if (!emailTransporter) {
