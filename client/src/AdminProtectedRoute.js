@@ -16,7 +16,7 @@ const AdminProtectedRoute = ({ children }) => {
         
         // 3. Token'daki rol 'admin' mi? Değilse, kullanıcının ana sayfasına yolla.
         if (decodedToken.role !== 'admin') {
-            return <Navigate to="/Dashboard" replace />; 
+            return <Navigate to="/home" replace />; 
         }
     } catch (error) {
         // 4. Token bozuksa veya geçersizse, yine login'e yolla.

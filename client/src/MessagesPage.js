@@ -18,7 +18,7 @@ function MessagesPage() {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        navigate('/');
+        navigate('/', { replace: true });
         return;
       }
       const response = await axios.get(`${API_URL}/api/conversations`, {
@@ -32,7 +32,7 @@ function MessagesPage() {
       setError(errorMessage);
       if (error.response?.status === 403 || error.response?.status === 401) {
         localStorage.removeItem('token');
-        navigate('/');
+        navigate('/', { replace: true });
       }
     } finally {
       setIsLoading(false);

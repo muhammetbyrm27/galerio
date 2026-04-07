@@ -28,7 +28,7 @@ function Dashboard({ notificationCount }) {
     localStorage.removeItem('token');
     // Socket bağlantısı App.js tarafından yönetildiği için,
     // bu çıkış işlemi sonrası App.js bağlantıyı otomatik olarak kesecektir.
-    navigate('/');
+    navigate('/', { replace: true });
   };
 
   // *** DÜZELTME: Messages sayfasına giderken bildirimleri temizle ***

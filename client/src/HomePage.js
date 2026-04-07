@@ -26,7 +26,7 @@ function HomePage() {
   const handleLogout = useCallback(() => {
     socket.disconnect(); 
     localStorage.removeItem('token');
-    navigate('/');
+    navigate('/', { replace: true });
   }, [navigate]);
   
   // ===> EKLEME 2: Bildirim sayısını çeken ve socket.io'yu dinleyen yeni bir useEffect eklendi.
@@ -83,7 +83,7 @@ function HomePage() {
             handleLogout();
         }
     } else {
-        navigate('/');
+        navigate('/', { replace: true });
     }
 
     const fetchAllVehicles = async () => {

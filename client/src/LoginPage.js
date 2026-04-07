@@ -34,11 +34,22 @@ function LoginPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        if (decoded.role === 'admin') navigate('/dashboard', { replace: true });
+        else navigate('/home', { replace: true });
+      } catch (e) {
+        localStorage.removeItem('token');
+      }
+    }
+
     const interval = setInterval(() => {
       setCurrentBgIndex((prevIndex) => (prevIndex + 1) % backgroundImages.length);
     }, 7000);
     return () => clearInterval(interval);
-  }, []);
+  }, [navigate]);
 
   const clearErrors = () => setError('');
 
@@ -53,7 +64,7 @@ function LoginPage() {
         setError('Bu alan sadece yöneticilere aittir.'); return;
       }
       localStorage.setItem('token', token);
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Giriş işlemi başarısız.');
     }
@@ -65,7 +76,7 @@ function LoginPage() {
     try {
       const res = await axios.post(`${API_URL}/api/login`, { email: userEmail, password: userPassword });
       localStorage.setItem('token', res.data.token);
-      navigate('/home');
+      navigate('/home', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Giriş işlemi başarısız.');
     }
