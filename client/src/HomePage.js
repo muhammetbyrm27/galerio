@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import API_URL from './config';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import './HomePage.css'; 
@@ -37,7 +38,7 @@ function HomePage() {
     }    // Sayfa yüklendiğinde ve yeni mesaj geldiğinde okunmamış sayısını çeken fonksiyon
     const fetchUnreadCount = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/user-notifications/unread-count', {
+        const response = await axios.get(`${API_URL}/api/user-notifications/unread-count`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         setUnreadCount(response.data.unreadCount);
@@ -87,7 +88,7 @@ function HomePage() {
 
     const fetchAllVehicles = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/vehicles');
+        const response = await axios.get(`${API_URL}/api/vehicles`);
         setVehicles(response.data);
       } catch (error) {
         console.error("Araçlar çekilirken hata oluştu:", error);
@@ -107,7 +108,7 @@ function HomePage() {
   };
   const openDetailsModal = async (vehicleId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/vehicles/${vehicleId}`);
+      const response = await axios.get(`${API_URL}/api/vehicles/${vehicleId}`);
       setSelectedVehicleForDetails(response.data);
     } catch (error) {
       alert("Araç detayları yüklenirken bir hata oluştu.");
@@ -126,7 +127,7 @@ function HomePage() {
   const openChatFromConversations = async (vehicleId) => {
     setIsConversationsModalOpen(false);
     try {
-      const response = await axios.get(`http://localhost:5000/api/vehicles/${vehicleId}`);
+      const response = await axios.get(`${API_URL}/api/vehicles/${vehicleId}`);
       setSelectedVehicleForChat(response.data);
     } catch (error) {
       alert("Sohbet açılırken bir hata oluştu. Lütfen tekrar deneyin.");
@@ -174,7 +175,7 @@ function HomePage() {
           <div key={vehicle.id} className="vehicle-card-item" onClick={() => openDetailsModal(vehicle.id)}>
             <div className="card-image-container">
               <img 
-                src={vehicle.photo_url ? `http://localhost:5000/${vehicle.photo_url}` : 'https://via.placeholder.com/400x300?text=Resim+Yok'} 
+                src={vehicle.photo_url ? `${API_URL}/${vehicle.photo_url}` : 'https://via.placeholder.com/400x300?text=Resim+Yok'} 
                 alt={`${vehicle.brand} ${vehicle.model}`}
               />
             </div>
@@ -239,7 +240,7 @@ function VehicleDetailModal({ vehicle, closeModal, openChat }) {
             {vehicle.photos && vehicle.photos.length > 0 ? (
               <div className="image-gallery">
                 <div className="main-image-container">
-                  <img src={`http://localhost:5000/${vehicle.photos[currentImageIndex].photo_url}`} alt="Ana Araç" className="main-image" />
+                  <img src={`${API_URL}/${vehicle.photos[currentImageIndex].photo_url}`} alt="Ana Araç" className="main-image" />
                   {vehicle.photos.length > 1 && (
                     <>
                       <button className="image-nav-btn prev" onClick={prevImage}>‹</button>
@@ -250,7 +251,7 @@ function VehicleDetailModal({ vehicle, closeModal, openChat }) {
                 {vehicle.photos.length > 1 && (
                   <div className="thumbnail-container">
                     {vehicle.photos.map((photo, index) => (
-                      <img key={photo.id} src={`http://localhost:5000/${photo.photo_url}`} alt={`Thumbnail ${index + 1}`}
+                      <img key={photo.id} src={`${API_URL}/${photo.photo_url}`} alt={`Thumbnail ${index + 1}`}
                            className={`thumbnail ${index === currentImageIndex ? 'active' : ''}`}
                            onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(index); }} />
                     ))}

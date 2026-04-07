@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import API_URL from './config';
 import AdminChatBox from './AdminChatBox';
 import './MessagesPage.css';
 import { useNavigate } from 'react-router-dom';
@@ -20,7 +21,7 @@ function MessagesPage() {
         navigate('/');
         return;
       }
-      const response = await axios.get('http://localhost:5000/api/conversations', {
+      const response = await axios.get(`${API_URL}/api/conversations`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setConversations(response.data);
@@ -87,7 +88,7 @@ function MessagesPage() {
     if (window.confirm("Bu sohbeti ve içindeki tüm mesajları kalıcı olarak silmek istediğinizden emin misiniz?")) {
         try {
             const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:5000/api/conversations/${conversationId}`, {
+            await axios.delete(`${API_URL}/api/conversations/${conversationId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
         } catch (error) {

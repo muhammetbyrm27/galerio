@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
+import API_URL from './config';
 import './ChatModal.css';
 import { socket } from './socket';
 
@@ -33,7 +34,7 @@ function ChatModal({ vehicle, closeModal }) {
   const fetchAdminUser = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/admin-user', {
+      const response = await axios.get(`${API_URL}/api/admin-user`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       console.log('👨‍💼 Admin user:', response.data);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
+import API_URL from './config';
 import './PersonnelPage.css';
 
 function PersonnelPage() {
@@ -25,7 +26,7 @@ function PersonnelPage() {
 
     const fetchPersonnel = useCallback(async () => {
         try {
-            const { data } = await axios.get('http://localhost:5000/api/personnel', authConfig);
+            const { data } = await axios.get(`${API_URL}/api/personnel`, authConfig);
             setPersonnelList(data);
         } catch (error) { 
             console.error("Personel listesi alınamadı:", error); 
@@ -51,10 +52,10 @@ function PersonnelPage() {
         e.preventDefault();
         try {
             if (isEditing) {
-                await axios.put(`http://localhost:5000/api/personnel/${currentPersonnelId}`, formData, authConfig);
+                await axios.put(`${API_URL}/api/personnel/${currentPersonnelId}`, formData, authConfig);
                 alert('Personel güncellendi!');
             } else {
-                await axios.post('http://localhost:5000/api/personnel', formData, authConfig);
+                await axios.post(`${API_URL}/api/personnel`, formData, authConfig);
                 alert('Personel eklendi!');
             }
             cancelEdit();
@@ -88,7 +89,7 @@ function PersonnelPage() {
     const handleDelete = async (id) => {
         if (window.confirm("Bu personeli silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.")) {
             try {
-                await axios.delete(`http://localhost:5000/api/personnel/${id}`, authConfig);
+                await axios.delete(`${API_URL}/api/personnel/${id}`, authConfig);
                 alert("Personel silindi.");
                 fetchPersonnel();
             } catch (error) { 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import API_URL from './config';
 import './CreditCalculatorPage.css'; 
 
 function CreditCalculatorPage() {
@@ -22,7 +23,7 @@ function CreditCalculatorPage() {
         setYukleniyor(true);
         setSonuc(null);
         try {
-            const response = await axios.post('http://localhost:5000/api/kredi/hesapla', {
+            const response = await axios.post(`${API_URL}/api/kredi/hesapla`, {
                 krediTutari: Number(formVerisi.krediTutari),
                 vade: Number(formVerisi.vade),
                 aylikFaizOrani: Number(formVerisi.aylikFaizOrani),

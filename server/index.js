@@ -22,7 +22,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: process.env.CLIENT_URL || "*",
         methods: ["GET", "POST"]
     }
 });
@@ -39,10 +39,12 @@ if (!fs.existsSync(uploadsDir)) {
 const db = mysql.createPool({
   connectionLimit: 10,
   host: process.env.DB_HOST,
+  port: process.env.DB_PORT || 3306,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  timezone: '+03:00'
+  timezone: '+03:00',
+  ssl: process.env.DB_HOST !== 'localhost' ? { rejectUnauthorized: true } : false
 }).promise();
 
 console.log('✅ MySQL bağlantı havuzu oluşturuldu.');
@@ -92,9 +94,7 @@ if (!process.env.SENDGRID_API_KEY) {
     console.log("✅ SendGrid API anahtarı bulundu.");
 }
 
-// ===================================
-//         API ROTALARI
-// ===================================
+
 
 app.post('/api/register', async (req, res) => {
     try {
@@ -129,7 +129,6 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// *** YENİ ENDPOINT: Admin kullanıcı bilgisi almak için ***
 app.get('/api/admin-user', authenticateToken, async (req, res) => {
     try {
         const [admins] = await db.query('SELECT id, name FROM users WHERE role = "admin" LIMIT 1');
@@ -514,7 +513,7 @@ app.get('/api/notifications/unread-count', authenticateToken, requireAdmin, asyn
     }
 });
 
-// *** DÜZELTME: Conversations endpoint tamamen yeniden yazıldı ***
+
 
 app.get('/api/user-conversations', authenticateToken, async (req, res) => {
     try {
@@ -941,12 +940,6 @@ io.on('connection', (socket) => {
     });
 });
 
-// *** DÜZELTME: API Endpoints - Duplicate endpoint'i kaldır ***
-
-// SADECE BU ENDPOINT KALSIN (user-conversations için)
-
-
-// *** DÜZELTME: Admin conversations endpoint ***
 app.get('/api/conversations', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const adminId = req.user.id;

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_URL from './config';
 import './LoginPage.css';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
@@ -45,7 +46,7 @@ function LoginPage() {
     e.preventDefault();
     setError('');
     try {
-      const res = await axios.post('http://localhost:5000/api/login', { email: adminEmail, password: adminPassword });
+      const res = await axios.post(`${API_URL}/api/login`, { email: adminEmail, password: adminPassword });
       const token = res.data.token;
       const decoded = jwtDecode(token);
       if (decoded.role !== 'admin') {
@@ -62,7 +63,7 @@ function LoginPage() {
     e.preventDefault();
     setError('');
     try {
-      const res = await axios.post('http://localhost:5000/api/login', { email: userEmail, password: userPassword });
+      const res = await axios.post(`${API_URL}/api/login`, { email: userEmail, password: userPassword });
       localStorage.setItem('token', res.data.token);
       navigate('/home');
     } catch (err) {
@@ -74,7 +75,7 @@ function LoginPage() {
     e.preventDefault();
     setError('');
     try {
-      await axios.post('http://localhost:5000/api/register', { name: registerName, email: registerEmail, password: registerPassword });
+      await axios.post(`${API_URL}/api/register`, { name: registerName, email: registerEmail, password: registerPassword });
       alert('Kayıt başarılı! Şimdi giriş yapabilirsiniz.');
       setActiveTab('user');
     } catch (err) {

@@ -1,6 +1,7 @@
 // export default ForgotPasswordPage;
 import React, { useState } from 'react';
 import axios from 'axios';
+import API_URL from './config';
 import { useNavigate } from 'react-router-dom';
 
 // ===> DEĞİŞİKLİK 1: ARTIK KENDİ ÖZEL CSS DOSYASINI KULLANIYOR <===
@@ -20,7 +21,7 @@ function ForgotPasswordPage() {
     setIsLoading(true);
     setError('');
     try {
-      const res = await axios.post('http://localhost:5000/api/request-password-reset', { email });
+      const res = await axios.post(`${API_URL}/api/request-password-reset`, { email });
       setMessage(res.data.message);
       setStep(2);
     } catch (err) {
@@ -34,7 +35,7 @@ function ForgotPasswordPage() {
     setIsLoading(true);
     setError('');
     try {
-      const res = await axios.post('http://localhost:5000/api/verify-and-reset-password', {
+      const res = await axios.post(`${API_URL}/api/verify-and-reset-password`, {
         email, code, newPassword
       });
       setMessage(res.data.message);

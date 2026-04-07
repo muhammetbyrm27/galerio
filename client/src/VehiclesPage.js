@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import API_URL from './config';
 import './VehiclesPage.css';
 
 function VehiclesPage() {
@@ -31,7 +32,7 @@ function VehiclesPage() {
       setError('');
       console.log("🔄 Araçlar yükleniyor...");
       
-      const response = await axios.get('http://localhost:5000/api/vehicles');
+      const response = await axios.get(`${API_URL}/api/vehicles`);
       console.log("✅ Araçlar yüklendi:", response.data);
       setVehicles(response.data || []);
     } catch (error) { 
@@ -73,7 +74,7 @@ function VehiclesPage() {
       setLoading(true);
       console.log(`📝 Araç düzenleme başlatıldı: ID ${vehicle.id}`);
       
-      const response = await axios.get(`http://localhost:5000/api/vehicles/${vehicle.id}`);
+      const response = await axios.get(`${API_URL}/api/vehicles/${vehicle.id}`);
       console.log("✅ Araç detayları alındı:", response.data);
       
       setIsEditing(true);
@@ -107,7 +108,7 @@ function VehiclesPage() {
         setLoading(true);
         console.log(`🗑️ Fotoğraf siliniyor: ID ${photoId}`);
         
-        await axios.delete(`http://localhost:5000/api/photos/${photoId}`, authHeaders);
+        await axios.delete(`${API_URL}/api/photos/${photoId}`, authHeaders);
         console.log("✅ Fotoğraf silindi");
         
         alert("Fotoğraf silindi.");
@@ -130,7 +131,7 @@ function VehiclesPage() {
         setLoading(true);
         console.log(`🗑️ Araç siliniyor: ID ${id}`);
         
-        await axios.delete(`http://localhost:5000/api/vehicles/${id}`, authHeaders);
+        await axios.delete(`${API_URL}/api/vehicles/${id}`, authHeaders);
         console.log("✅ Araç silindi");
         
         alert("Araç başarıyla silindi.");
@@ -182,7 +183,7 @@ function VehiclesPage() {
         
         // Araç bilgilerini güncelle
         await axios.put(
-          `http://localhost:5000/api/vehicles/${currentVehicle.id}`, 
+          `${API_URL}/api/vehicles/${currentVehicle.id}`, 
           formData, 
           authHeaders
         );
@@ -204,7 +205,7 @@ function VehiclesPage() {
           };
           
           await axios.post(
-            `http://localhost:5000/api/vehicles/${currentVehicle.id}/add-photos`, 
+            `${API_URL}/api/vehicles/${currentVehicle.id}/add-photos`, 
             photoData, 
             photoConfig
           );
@@ -243,7 +244,7 @@ function VehiclesPage() {
           } 
         };
         
-        const response = await axios.post('http://localhost:5000/api/vehicles', vehicleData, config);
+        const response = await axios.post(`${API_URL}/api/vehicles`, vehicleData, config);
         console.log("✅ Araç eklendi:", response.data);
         alert('Araç başarıyla eklendi!');
       }
@@ -446,7 +447,7 @@ function VehiclesPage() {
                   {currentVehicle.photos.map(photo => (
                     <div key={photo.id} className="photo-item">
                       <img 
-                        src={`http://localhost:5000/${photo.photo_url}`} 
+                        src={`${API_URL}/${photo.photo_url}`} 
                         alt="Araç"
                         onError={(e) => {
                           console.error(`Fotoğraf yüklenemedi: ${photo.photo_url}`);
@@ -541,7 +542,7 @@ function VehiclesPage() {
                       <td className="photo-cell">
                         {vehicle.photo_url ? (
                           <img 
-                            src={`http://localhost:5000/${vehicle.photo_url}`}
+                            src={`${API_URL}/${vehicle.photo_url}`}
                             alt={`${vehicle.brand} ${vehicle.model}`}
                             className="vehicle-thumbnail"
                             style={{ 

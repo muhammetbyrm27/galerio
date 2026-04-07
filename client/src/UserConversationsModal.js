@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import API_URL from './config';
 import { jwtDecode } from 'jwt-decode'; // EKLE
 import { socket } from './socket'; // EKLE
 import './UserConversationsModal.css'; // Bu CSS dosyasına da ekleme yapacağız
@@ -40,7 +41,7 @@ function UserConversationsModal({ closeModal, openChatForVehicle }) {
                 closeModal();
                 return;
             }
-            const response = await axios.get('http://localhost:5000/api/user-conversations', {
+            const response = await axios.get(`${API_URL}/api/user-conversations`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             setConversations(response.data);

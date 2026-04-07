@@ -1,8 +1,7 @@
 
 import { io } from 'socket.io-client';
+import API_URL from './config';
 
-const URL = 'http://localhost:5000';
-
-export const socket = io(URL, {
-  autoConnect: false, // Bağlantıyı sadece biz istediğimizde başlat
+export const socket = io(API_URL, {
+  autoConnect: false,
 });

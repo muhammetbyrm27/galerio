@@ -5,6 +5,7 @@ import './App.css';
 import { jwtDecode } from 'jwt-decode';
 import { socket } from './socket';
 import axios from 'axios';
+import API_URL from './config';
 
 import ProtectedRoute from './ProtectedRoute'; 
 import AdminProtectedRoute from './AdminProtectedRoute'; 
@@ -57,7 +58,7 @@ function AppContent() {
     };
     const handleResetNotifications = () => setNotificationCount(0);
     const handleRefresh = () => {
-        axios.get('http://localhost:5000/api/notifications/unread-count', { headers: { 'Authorization': `Bearer ${token}` }})
+        axios.get(`${API_URL}/api/notifications/unread-count`, { headers: { 'Authorization': `Bearer ${token}` }})
              .then(res => setNotificationCount(res.data.unreadCount));
     };
 
