@@ -16,10 +16,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { KeyboardDismissBar } from './KeyboardDismissView';
+import ChatVehicleBanner from './ChatVehicleBanner';
 
 const ChatPanel = ({
   title,
   subtitle,
+  vehicle,
+  onOpenVehicle,
   messages,
   currentUserId,
   isAdmin = false,
@@ -140,6 +143,10 @@ const ChatPanel = ({
             {subtitle ? <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text> : null}
           </View>
         </View>
+
+        {vehicle ? (
+          <ChatVehicleBanner vehicle={vehicle} onPress={onOpenVehicle} />
+        ) : null}
 
         <View style={styles.messagesArea}>
           {loading ? (

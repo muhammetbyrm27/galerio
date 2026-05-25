@@ -1,8 +1,23 @@
 /**
  * İşlenmiş mesajı Socket.io ile istemcilere dağıtır.
  */
-function emitMessageProcessed(io, { newMessage, sender }) {
-  const { conversation_id, sender_id, receiver_id } = newMessage;
+async function emitMessageProcessed(io, db, { newMessage, sender }) {
+  const { conversation_id, sender_id, receiver_id, vehicle_id } = newMessage;
+
+  let vehicle = null;
+  if (vehicle_id) {
+    try {
+      const [rows] = await db.query(
+        `SELECT v.id, v.brand, v.model, v.year, v.color, v.mileage, v.gear, v.fuel, v.sale_price,
+                (SELECT photo_url FROM vehicle_photos vp WHERE vp.vehicle_id = v.id ORDER BY vp.id ASC LIMIT 1) AS photo_url
+         FROM vehicles v WHERE v.id = ?`,
+        [vehicle_id]
+      );
+      vehicle = rows[0] || null;
+    } catch (err) {
+      console.warn('Araç özeti alınamadı:', err.message);
+    }
+  }
 
   console.log(`📤 Mesaj odaya gönderiliyor: ${conversation_id}`);
   io.to(conversation_id).emit('receive_message', newMessage);
@@ -20,6 +35,7 @@ function emitMessageProcessed(io, { newMessage, sender }) {
       adminSocket.emit('admin_new_unread_message', {
         conversationId: conversation_id,
         message: newMessage,
+        vehicle,
       });
       adminSocket.emit('receive_message', newMessage);
     });
@@ -34,7 +50,7 @@ function emitMessageProcessed(io, { newMessage, sender }) {
     );
 
     const userSockets = Array.from(io.sockets.sockets.values()).filter(
-      (s) => s.userRole === 'user' && s.userId === receiver_id
+      (s) => s.userRole === 'user' && Number(s.userId) === Number(receiver_id)
     );
 
     console.log(`🎯 ${userSockets.length} user socket bulundu`);

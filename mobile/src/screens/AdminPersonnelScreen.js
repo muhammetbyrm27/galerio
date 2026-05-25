@@ -9,6 +9,7 @@ import {
   Alert,
   RefreshControl,
   TextInput,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../api/axiosConfig';
@@ -208,7 +209,7 @@ const AdminPersonnelScreen = () => {
 
   if (loading) {
     return (
-      <ScreenLayout>
+      <ScreenLayout keyboardAware>
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#00f2fe" />
         </View>
@@ -217,7 +218,7 @@ const AdminPersonnelScreen = () => {
   }
 
   return (
-    <ScreenLayout>
+    <ScreenLayout keyboardAware>
       <View style={styles.container}>
         <View style={styles.topBar}>
           <Text style={styles.pageTitle}>Personel</Text>
@@ -233,12 +234,17 @@ const AdminPersonnelScreen = () => {
           onChangeText={setSearch}
           placeholder="Personel ara..."
           placeholderTextColor="#64748b"
+          returnKeyType="search"
+          blurOnSubmit
+          onSubmitEditing={Keyboard.dismiss}
         />
 
         <FlatList
           data={filtered}
           keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 24 }}
           refreshControl={
             <RefreshControl

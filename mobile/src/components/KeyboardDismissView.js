@@ -7,7 +7,18 @@ import {
   View,
   Platform,
   TouchableWithoutFeedback,
+  Modal,
+  KeyboardAvoidingView,
+  Pressable,
+  ScrollView,
 } from 'react-native';
+
+export const FORM_SCROLL_PROPS = {
+  keyboardShouldPersistTaps: 'handled',
+  keyboardDismissMode: 'on-drag',
+  showsVerticalScrollIndicator: false,
+  nestedScrollEnabled: true,
+};
 
 /**
  * Klavye açıkken altta "Kapat" çubuğu + dışarı dokununca klavyeyi indirir.
@@ -42,6 +53,63 @@ export function KeyboardDismissBar() {
   );
 }
 
+export function FormKeyboardScrollView({ style, contentContainerStyle, children, ...rest }) {
+  return (
+    <ScrollView
+      style={style}
+      contentContainerStyle={contentContainerStyle}
+      {...FORM_SCROLL_PROPS}
+      {...rest}
+    >
+      {children}
+    </ScrollView>
+  );
+}
+
+/** Form alanları için returnKeyType / blurOnSubmit */
+export function getFieldKeyboardProps(index, total, { multiline = false, onDone } = {}) {
+  if (multiline) {
+    return {
+      returnKeyType: 'default',
+      blurOnSubmit: true,
+      onSubmitEditing: () => {
+        Keyboard.dismiss();
+        onDone?.();
+      },
+    };
+  }
+  const isLast = index === total - 1;
+  return {
+    returnKeyType: isLast ? 'done' : 'next',
+    blurOnSubmit: isLast,
+    onSubmitEditing: isLast
+      ? () => {
+          Keyboard.dismiss();
+          onDone?.();
+        }
+      : undefined,
+  };
+}
+
+/**
+ * Alt sayfa (bottom sheet) formları — klavye kaçınma, kaydırınca kapanma, Kapat çubuğu.
+ */
+export function ModalFormShell({ visible, onClose, children, sheetStyle }) {
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        style={styles.modalOverlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
+      >
+        <Pressable style={styles.modalBackdrop} onPress={Keyboard.dismiss} />
+        <View style={[styles.modalSheet, sheetStyle]}>{children}</View>
+        <KeyboardDismissBar />
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
 export function DismissKeyboardView({ children, style }) {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -65,6 +133,19 @@ const styles = StyleSheet.create({
   },
   barText: { color: '#00f2fe', fontWeight: '700', fontSize: 15 },
   barIcon: { color: '#00f2fe', fontSize: 12 },
+  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+  modalSheet: {
+    maxHeight: '92%',
+    backgroundColor: '#1e293b',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
 });
 
 export default DismissKeyboardView;

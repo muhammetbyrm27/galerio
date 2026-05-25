@@ -1,18 +1,19 @@
 import React from 'react';
 import {
-  Modal,
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
-  Pressable,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  ModalFormShell,
+  FormKeyboardScrollView,
+  getFieldKeyboardProps,
+} from './KeyboardDismissView';
 
 const FIELDS = [
   { key: 'ad', label: 'Ad *', placeholder: 'Ad' },
@@ -36,81 +37,70 @@ const PersonnelFormModal = ({
   saving,
   error,
 }) => (
-  <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-    <KeyboardAvoidingView
-      style={styles.overlay}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <Pressable style={styles.backdrop} onPress={onClose} />
-      <View style={styles.sheet}>
-        <View style={styles.header}>
-          <Text style={styles.title}>
-            {isEditing ? 'Personeli Düzenle' : 'Yeni Personel'}
-          </Text>
-          <TouchableOpacity onPress={onClose}>
-            <Ionicons name="close" size={28} color="#fff" />
-          </TouchableOpacity>
-        </View>
+  <ModalFormShell visible={visible} onClose={onClose}>
+    <View style={styles.header}>
+      <Text style={styles.title}>
+        {isEditing ? 'Personeli Düzenle' : 'Yeni Personel'}
+      </Text>
+      <TouchableOpacity onPress={onClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <Ionicons name="close" size={28} color="#fff" />
+      </TouchableOpacity>
+    </View>
 
-        {error ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        ) : null}
-
-        <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          {FIELDS.map((field) => (
-            <View key={field.key} style={styles.field}>
-              <Text style={styles.label}>{field.label}</Text>
-              <TextInput
-                style={[styles.input, field.multiline && styles.inputMulti]}
-                value={String(formData[field.key] ?? '')}
-                onChangeText={(v) => onChange(field.key, v)}
-                placeholder={field.placeholder}
-                placeholderTextColor="#64748b"
-                keyboardType={field.keyboard || 'default'}
-                maxLength={field.maxLength}
-                multiline={field.multiline}
-                numberOfLines={field.multiline ? 3 : 1}
-              />
-            </View>
-          ))}
-        </ScrollView>
-
-        <TouchableOpacity
-          style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
-          onPress={onSave}
-          disabled={saving}
-        >
-          {saving ? (
-            <ActivityIndicator color="#0f172a" />
-          ) : (
-            <Text style={styles.saveText}>{isEditing ? 'Güncelle' : 'Kaydet'}</Text>
-          )}
-        </TouchableOpacity>
+    {error ? (
+      <View style={styles.errorBox}>
+        <Text style={styles.errorText}>{error}</Text>
       </View>
-    </KeyboardAvoidingView>
-  </Modal>
+    ) : null}
+
+    <FormKeyboardScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+      {FIELDS.map((field, index) => (
+        <View key={field.key} style={styles.field}>
+          <Text style={styles.label}>{field.label}</Text>
+          <TextInput
+            style={[styles.input, field.multiline && styles.inputMulti]}
+            value={String(formData[field.key] ?? '')}
+            onChangeText={(v) => onChange(field.key, v)}
+            placeholder={field.placeholder}
+            placeholderTextColor="#64748b"
+            keyboardType={field.keyboard || 'default'}
+            maxLength={field.maxLength}
+            multiline={field.multiline}
+            numberOfLines={field.multiline ? 3 : 1}
+            {...getFieldKeyboardProps(index, FIELDS.length, {
+              multiline: field.multiline,
+              onDone: () => Keyboard.dismiss(),
+            })}
+          />
+        </View>
+      ))}
+    </FormKeyboardScrollView>
+
+    <TouchableOpacity
+      style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
+      onPress={onSave}
+      disabled={saving}
+    >
+      {saving ? (
+        <ActivityIndicator color="#0f172a" />
+      ) : (
+        <Text style={styles.saveText}>{isEditing ? 'Güncelle' : 'Kaydet'}</Text>
+      )}
+    </TouchableOpacity>
+  </ModalFormShell>
 );
 
 export default PersonnelFormModal;
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'flex-end' },
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
-  sheet: {
-    backgroundColor: '#1e293b',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '90%',
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-  },
+  scroll: { maxHeight: 480 },
+  scrollContent: { paddingBottom: 12 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingTop: 16,
+    marginBottom: 8,
   },
   title: { fontSize: 18, fontWeight: '800', color: '#fff' },
   errorBox: {
@@ -138,6 +128,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     marginTop: 8,
+    marginBottom: 8,
   },
   saveBtnDisabled: { opacity: 0.7 },
   saveText: { color: '#0f172a', fontWeight: '800', fontSize: 16 },

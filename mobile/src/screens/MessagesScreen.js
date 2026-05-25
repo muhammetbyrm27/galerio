@@ -17,9 +17,15 @@ import useAuthStore from '../store/useAuthStore';
 import { useChatRoom } from '../hooks/useChatRoom';
 import { buildUserConversationId, parseConversationId } from '../utils/chatHelpers';
 import ChatPanel from '../components/ChatPanel';
+import VehicleDetailModal from '../components/VehicleDetailModal';
 import ScreenLayout from '../components/ScreenLayout';
 import useMessagesNavStore from '../store/useMessagesNavStore';
 import useUnreadMessagesStore from '../store/useUnreadMessagesStore';
+import {
+  formatVehicleTitle,
+  formatVehicleSubtitle,
+  formatVehicleListLine,
+} from '../utils/formatVehicle';
 
 const MessagesScreen = () => {
   const route = useRoute();
@@ -35,7 +41,19 @@ const MessagesScreen = () => {
   const [chatSession, setChatSession] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const [adminUser, setAdminUser] = useState(null);
+  const [vehicleDetail, setVehicleDetail] = useState(null);
+  const [vehicleDetailVisible, setVehicleDetailVisible] = useState(false);
   const activeChatIdRef = useRef(null);
+
+  const fetchVehicleDetail = useCallback(async (vehicleId, fallback = null) => {
+    if (!vehicleId) return fallback;
+    try {
+      const { data } = await api.get(`/vehicles/${vehicleId}`);
+      return data;
+    } catch {
+      return fallback;
+    }
+  }, []);
 
   const conversationId = chatSession?.conversationId ?? null;
 
@@ -118,16 +136,25 @@ const MessagesScreen = () => {
   const markAllAsRead = async () => {
     try {
       await api.post('/notifications/mark-all-read');
-      if (isAdmin) {
-        getSocket().emit('admin_cleared_notifications', { adminId: user.id });
-      } else {
-        getSocket().emit('user_cleared_notifications', { userId: user.id });
-      }
-      fetchConversations();
-      if (!isAdmin) useUnreadMessagesStore.getState().fetchUnreadCount();
     } catch (err) {
-      Alert.alert('Hata', err.response?.data?.message || 'Bildirimler güncellenemedi.');
+      const hint = err.response?.data?.hint;
+      const msg = err.response?.data?.message || 'Bildirimler güncellenemedi.';
+      Alert.alert('Hata', hint ? `${msg} (${hint})` : msg);
+      return;
     }
+
+    try {
+      if (isAdmin && user?.id) {
+        getSocket().emit('admin_cleared_notifications', { adminId: Number(user.id) });
+      } else if (user?.id) {
+        getSocket().emit('user_cleared_notifications', { userId: Number(user.id) });
+      }
+    } catch (_) {
+      /* socket isteğe bağlı */
+    }
+
+    fetchConversations();
+    if (!isAdmin) useUnreadMessagesStore.getState().fetchUnreadCount();
   };
 
   const fetchConversationsRef = useRef(fetchConversations);
@@ -189,12 +216,14 @@ const MessagesScreen = () => {
           setAdminUser(data);
         }
         const convId = buildUserConversationId(user.id, vehicle.id, admin.id);
+        const vehicleData = await fetchVehicleDetail(vehicle.id, vehicle);
         setChatSession({
           conversationId: convId,
-          title: `${vehicle.brand} ${vehicle.model}`,
-          subtitle: 'Satıcı ile mesajlaşma',
+          title: formatVehicleTitle(vehicleData),
+          subtitle: formatVehicleSubtitle(vehicleData) || 'Satıcı ile mesajlaşma',
           receiverId: Number(admin.id),
           vehicleId: Number(vehicle.id),
+          vehicle: vehicleData,
         });
         getSocket().emit('user_cleared_notifications', {
           userId: user.id,
@@ -205,7 +234,7 @@ const MessagesScreen = () => {
         setListError('Admin bilgisi alınamadı, sohbet açılamadı.');
       }
     },
-    [user, token, adminUser]
+    [user, token, adminUser, fetchVehicleDetail]
   );
 
   useEffect(() => {
@@ -216,28 +245,33 @@ const MessagesScreen = () => {
     }
   }, [route.params?.vehicle, user, openChatFromVehicle, navigation]);
 
-  const openChatFromConversation = (convo) => {
+  const openChatFromConversation = async (convo) => {
     const { userId, vehicleId, adminId } = parseConversationId(convo.conversation_id);
-    const title = isAdmin
-      ? `${convo.brand || ''} ${convo.model || ''}`.trim() || 'Araç'
-      : `${convo.brand} ${convo.model}`;
+    const vid = Number(vehicleId || convo.vehicle_id);
+    const vehicleData = await fetchVehicleDetail(vid, convo);
+
+    const title = formatVehicleTitle(vehicleData || convo);
+    const subtitle = isAdmin
+      ? (convo.user_name || 'Müşteri')
+      : formatVehicleSubtitle(vehicleData || convo) || 'Satıcı ile mesajlaşma';
 
     setChatSession({
       conversationId: convo.conversation_id,
       title,
-      subtitle: isAdmin ? (convo.user_name || 'Müşteri') : 'Satıcı ile mesajlaşma',
+      subtitle,
       receiverId: Number(isAdmin ? userId : adminId),
-      vehicleId: Number(vehicleId || convo.vehicle_id),
+      vehicleId: vid,
+      vehicle: vehicleData,
     });
 
     if (isAdmin) {
       getSocket().emit('admin_cleared_notifications', {
-        adminId: user.id,
+        adminId: Number(user.id),
         conversationId: convo.conversation_id,
       });
     } else {
       getSocket().emit('user_cleared_notifications', {
-        userId: user.id,
+        userId: Number(user.id),
         conversationId: convo.conversation_id,
       });
       setTimeout(() => useUnreadMessagesStore.getState().fetchUnreadCount(), 300);
@@ -292,20 +326,39 @@ const MessagesScreen = () => {
 
   if (chatSession) {
     return (
-      <ChatPanel
-        title={chatSession.title}
-        subtitle={chatSession.subtitle}
-        messages={messages}
-        currentUserId={user.id}
-        isAdmin={isAdmin}
-        newMessage={newMessage}
-        onChangeMessage={setNewMessage}
-        onSend={handleSend}
-        onBack={closeChat}
-        onDeleteMessage={deleteMessage}
-        loading={!ready}
-        sendingDisabled={!newMessage.trim()}
-      />
+      <>
+        <ChatPanel
+          title={chatSession.title}
+          subtitle={chatSession.subtitle}
+          vehicle={chatSession.vehicle}
+          onOpenVehicle={
+            chatSession.vehicle
+              ? () => {
+                  setVehicleDetail(chatSession.vehicle);
+                  setVehicleDetailVisible(true);
+                }
+              : undefined
+          }
+          messages={messages}
+          currentUserId={user.id}
+          isAdmin={isAdmin}
+          newMessage={newMessage}
+          onChangeMessage={setNewMessage}
+          onSend={handleSend}
+          onBack={closeChat}
+          onDeleteMessage={deleteMessage}
+          loading={!ready}
+          sendingDisabled={!newMessage.trim()}
+        />
+        <VehicleDetailModal
+          vehicle={vehicleDetail}
+          visible={vehicleDetailVisible}
+          onClose={() => {
+            setVehicleDetailVisible(false);
+            setVehicleDetail(null);
+          }}
+        />
+      </>
     );
   }
 
@@ -338,13 +391,17 @@ const MessagesScreen = () => {
             <Text style={[styles.convoTitle, unread && styles.convoTitleUnread]}>
               {isAdmin
                 ? item.user_name || 'Müşteri'
-                : `${item.brand} ${item.model}`}
+                : formatVehicleTitle(item)}
             </Text>
             {isAdmin ? (
-              <Text style={styles.convoVehicle}>
-                {item.brand} {item.model}
+              <Text style={styles.convoVehicle} numberOfLines={2}>
+                {formatVehicleListLine(item)}
               </Text>
-            ) : null}
+            ) : (
+              <Text style={styles.convoVehicle} numberOfLines={1}>
+                {formatVehicleSubtitle(item)}
+              </Text>
+            )}
             <Text style={[styles.convoPreview, unread && styles.convoPreviewUnread]} numberOfLines={2}>
               {item.message}
             </Text>

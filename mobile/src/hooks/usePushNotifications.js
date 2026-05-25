@@ -9,6 +9,7 @@ import {
   requestNotificationPermissions,
   showMessageNotification,
 } from '../services/notifications';
+import { formatVehicleTitle, formatVehicleSubtitle } from '../utils/formatVehicle';
 
 const shouldNotifyForConversation = (conversationId) => {
   const appState = AppState.currentState;
@@ -54,10 +55,22 @@ export function usePushNotifications() {
       if (!convId || !shouldNotifyForConversation(convId)) return;
       const preview = payload?.message?.message || 'Yeni müşteri mesajı';
       const sender = payload?.message?.sender_name;
+      const vehicle = payload?.vehicle;
+      const vehicleLine = vehicle
+        ? formatVehicleSubtitle(vehicle) || formatVehicleTitle(vehicle)
+        : '';
+      const title = vehicle
+        ? formatVehicleTitle(vehicle)
+        : sender
+          ? `${sender} — yeni mesaj`
+          : 'Yeni mesaj';
+      const body = [sender && vehicle ? sender : null, vehicleLine, preview]
+        .filter(Boolean)
+        .join(' · ');
       showMessageNotification({
-        title: sender ? `${sender} — yeni mesaj` : 'Yeni mesaj',
-        body: preview.length > 120 ? `${preview.slice(0, 117)}...` : preview,
-        data: { conversationId: convId },
+        title,
+        body: body.length > 120 ? `${body.slice(0, 117)}...` : body,
+        data: { conversationId: convId, vehicleId: vehicle?.id },
       });
     };
 

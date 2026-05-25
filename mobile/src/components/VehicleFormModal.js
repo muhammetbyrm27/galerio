@@ -1,20 +1,21 @@
 import React from 'react';
 import {
-  Modal,
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
-  Pressable,
   Image,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getImageUrl } from '../config';
+import {
+  ModalFormShell,
+  FormKeyboardScrollView,
+  getFieldKeyboardProps,
+} from './KeyboardDismissView';
 
 const FIELDS = [
   { key: 'brand', label: 'Marka *', placeholder: 'örn. BMW' },
@@ -49,164 +50,143 @@ const VehicleFormModal = ({
   const totalPhotos = existingPhotos.length + newPhotos.length;
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <KeyboardAvoidingView
-        style={styles.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    <ModalFormShell visible={visible} onClose={onClose}>
+      <View style={styles.header}>
+        <Text style={styles.title}>{isEditing ? 'Aracı Düzenle' : 'Yeni Araç Ekle'}</Text>
+        <TouchableOpacity onPress={onClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Ionicons name="close" size={28} color="#fff" />
+        </TouchableOpacity>
+      </View>
+
+      {error ? (
+        <View style={styles.errorBox}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      ) : null}
+
+      <FormKeyboardScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
       >
-        <Pressable style={styles.backdrop} onPress={onClose} />
-        <View style={styles.sheet}>
-          <View style={styles.header}>
-            <Text style={styles.title}>{isEditing ? 'Aracı Düzenle' : 'Yeni Araç Ekle'}</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={28} color="#fff" />
+        <View style={styles.photoBlock}>
+          <Text style={styles.photoSectionTitle}>Fotoğraflar ({totalPhotos}/10)</Text>
+          <View style={styles.photoActions}>
+            <TouchableOpacity
+              style={[styles.photoActionBtn, styles.photoActionPrimary]}
+              onPress={onPickFromGallery}
+              disabled={photoBusy || totalPhotos >= 10 || !onPickFromGallery}
+              activeOpacity={0.7}
+            >
+              {photoBusy ? (
+                <ActivityIndicator size="small" color="#00f2fe" />
+              ) : (
+                <Ionicons name="images" size={22} color="#00f2fe" />
+              )}
+              <Text style={styles.photoActionText}>Galeriden Seç</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.photoActionBtn}
+              onPress={onTakePhoto}
+              disabled={photoBusy || totalPhotos >= 10 || !onTakePhoto}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="camera" size={22} color="#00f2fe" />
+              <Text style={styles.photoActionText}>Kamera</Text>
             </TouchableOpacity>
           </View>
 
-          {error ? (
-            <View style={styles.errorBox}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
+          {existingPhotos.length > 0 ? (
+            <>
+              <Text style={styles.photoSubtitle}>Mevcut fotoğraflar</Text>
+              <View style={styles.photoGrid}>
+                {existingPhotos.map((photo) => (
+                  <View key={`ex-${photo.id}`} style={styles.photoWrap}>
+                    <Image
+                      source={{ uri: getImageUrl(photo.photo_url) }}
+                      style={styles.photoThumb}
+                    />
+                    <TouchableOpacity
+                      style={styles.photoRemove}
+                      onPress={() => onDeleteExistingPhoto(photo.id)}
+                    >
+                      <Ionicons name="trash" size={14} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            </>
           ) : null}
 
-          <View style={styles.photoBlock}>
-            <Text style={styles.photoSectionTitle}>Fotoğraflar ({totalPhotos}/10)</Text>
-            <View style={styles.photoActions}>
-              <TouchableOpacity
-                style={[styles.photoActionBtn, styles.photoActionPrimary]}
-                onPress={onPickFromGallery}
-                disabled={photoBusy || totalPhotos >= 10 || !onPickFromGallery}
-                activeOpacity={0.7}
-              >
-                {photoBusy ? (
-                  <ActivityIndicator size="small" color="#00f2fe" />
-                ) : (
-                  <Ionicons name="images" size={22} color="#00f2fe" />
-                )}
-                <Text style={styles.photoActionText}>Galeriden Seç</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.photoActionBtn}
-                onPress={onTakePhoto}
-                disabled={photoBusy || totalPhotos >= 10 || !onTakePhoto}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="camera" size={22} color="#00f2fe" />
-                <Text style={styles.photoActionText}>Kamera</Text>
-              </TouchableOpacity>
-            </View>
-
-            {existingPhotos.length > 0 ? (
-              <>
-                <Text style={styles.photoSubtitle}>Mevcut fotoğraflar</Text>
-                <View style={styles.photoGrid}>
-                  {existingPhotos.map((photo) => (
-                    <View key={`ex-${photo.id}`} style={styles.photoWrap}>
-                      <Image
-                        source={{ uri: getImageUrl(photo.photo_url) }}
-                        style={styles.photoThumb}
-                      />
-                      <TouchableOpacity
-                        style={styles.photoRemove}
-                        onPress={() => onDeleteExistingPhoto(photo.id)}
-                      >
-                        <Ionicons name="trash" size={14} color="#fff" />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              </>
-            ) : null}
-
-            {newPhotos.length > 0 ? (
-              <>
-                <Text style={styles.photoSubtitle}>Yeni eklenecek</Text>
-                <View style={styles.photoGrid}>
-                  {newPhotos.map((asset, index) => (
-                    <View key={`new-${asset.uri}-${index}`} style={styles.photoWrap}>
-                      <Image source={{ uri: asset.uri }} style={styles.photoThumb} />
-                      <TouchableOpacity
-                        style={styles.photoRemove}
-                        onPress={() => onRemoveNewPhoto(index)}
-                      >
-                        <Ionicons name="close" size={16} color="#fff" />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              </>
-            ) : null}
-
-            {totalPhotos === 0 ? (
-              <Text style={styles.photoHint}>
-                Galeriden veya kameradan en fazla 10 fotoğraf ekleyebilirsiniz.
-              </Text>
-            ) : null}
-          </View>
-
-          <ScrollView
-            style={styles.fieldsScroll}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            {FIELDS.map((field) => (
-              <View key={field.key} style={styles.field}>
-                <Text style={styles.label}>{field.label}</Text>
-                <TextInput
-                  style={[styles.input, field.multiline && styles.inputMulti]}
-                  value={String(formData[field.key] ?? '')}
-                  onChangeText={(v) => onChange(field.key, v)}
-                  placeholder={field.placeholder}
-                  placeholderTextColor="#64748b"
-                  keyboardType={field.keyboard || 'default'}
-                  multiline={field.multiline}
-                  numberOfLines={field.multiline ? 3 : 1}
-                />
+          {newPhotos.length > 0 ? (
+            <>
+              <Text style={styles.photoSubtitle}>Yeni eklenecek</Text>
+              <View style={styles.photoGrid}>
+                {newPhotos.map((asset, index) => (
+                  <View key={`new-${asset.uri}-${index}`} style={styles.photoWrap}>
+                    <Image source={{ uri: asset.uri }} style={styles.photoThumb} />
+                    <TouchableOpacity
+                      style={styles.photoRemove}
+                      onPress={() => onRemoveNewPhoto(index)}
+                    >
+                      <Ionicons name="close" size={16} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
               </View>
-            ))}
-          </ScrollView>
+            </>
+          ) : null}
 
-          <TouchableOpacity
-            style={[styles.saveBtn, saving && styles.saveDisabled]}
-            onPress={onSave}
-            disabled={saving || photoBusy}
-          >
-            {saving ? (
-              <ActivityIndicator color="#0f172a" />
-            ) : (
-              <Text style={styles.saveText}>{isEditing ? 'Güncelle' : 'Kaydet'}</Text>
-            )}
-          </TouchableOpacity>
+          {totalPhotos === 0 ? (
+            <Text style={styles.photoHint}>
+              Galeriden veya kameradan en fazla 10 fotoğraf ekleyebilirsiniz.
+            </Text>
+          ) : null}
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+
+        {FIELDS.map((field, index) => (
+          <View key={field.key} style={styles.field}>
+            <Text style={styles.label}>{field.label}</Text>
+            <TextInput
+              style={[styles.input, field.multiline && styles.inputMulti]}
+              value={String(formData[field.key] ?? '')}
+              onChangeText={(v) => onChange(field.key, v)}
+              placeholder={field.placeholder}
+              placeholderTextColor="#64748b"
+              keyboardType={field.keyboard || 'default'}
+              multiline={field.multiline}
+              numberOfLines={field.multiline ? 3 : 1}
+              {...getFieldKeyboardProps(index, FIELDS.length, {
+                multiline: field.multiline,
+                onDone: () => Keyboard.dismiss(),
+              })}
+            />
+          </View>
+        ))}
+      </FormKeyboardScrollView>
+
+      <TouchableOpacity
+        style={[styles.saveBtn, (saving || photoBusy) && styles.saveDisabled]}
+        onPress={onSave}
+        disabled={saving || photoBusy}
+      >
+        {saving ? (
+          <ActivityIndicator color="#0f172a" />
+        ) : (
+          <Text style={styles.saveText}>{isEditing ? 'Güncelle' : 'Kaydet'}</Text>
+        )}
+      </TouchableOpacity>
+    </ModalFormShell>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'flex-end' },
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
-  sheet: {
-    maxHeight: '92%',
-    backgroundColor: '#1e293b',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 16,
-    paddingBottom: 24,
-  },
-  photoBlock: {
-    backgroundColor: '#0f172a',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0,242,254,0.25)',
-  },
-  fieldsScroll: { maxHeight: 280 },
+  scroll: { maxHeight: 420 },
+  scrollContent: { paddingBottom: 12 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingTop: 16,
     marginBottom: 12,
   },
   title: { fontSize: 20, fontWeight: '800', color: '#fff' },
@@ -217,6 +197,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   errorText: { color: '#fca5a5', fontSize: 13 },
+  photoBlock: {
+    backgroundColor: '#0f172a',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0,242,254,0.25)',
+  },
   field: { marginBottom: 12 },
   label: { color: '#94a3b8', fontSize: 13, marginBottom: 6 },
   input: {
@@ -282,6 +270,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     marginTop: 8,
+    marginBottom: 8,
   },
   saveDisabled: { opacity: 0.6 },
   saveText: { color: '#0f172a', fontWeight: '800', fontSize: 16 },

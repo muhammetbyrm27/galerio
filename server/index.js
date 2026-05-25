@@ -28,6 +28,7 @@ const {
     unhideConversationForUser,
     HIDDEN_INBOX_SQL,
 } = require('./lib/inbox');
+const { ensureMessagesSchema, ADMIN_CONV_REGEXP, adminConversationFilterSql } = require('./lib/messagesSchema');
 const {
     connectRabbitMQ,
     pingRabbitMQ,
@@ -680,16 +681,18 @@ app.post('/api/kredi/hesapla', (req, res) => {
 app.get('/api/notifications/unread-count', authenticateToken, requireAdmin, async (req, res) => {
     try {
         await ensureHiddenInboxTable();
+        await ensureMessagesSchema();
         const adminId = req.user.id;
+        const adminFilter = adminConversationFilterSql('m', adminId);
         const sql = `
             SELECT COUNT(DISTINCT m.conversation_id) AS unreadCount 
             FROM messages m
             WHERE 
                 m.is_read_by_admin = FALSE
-                AND m.conversation_id REGEXP '^user_[0-9]+_vehicle_[0-9]+_admin_[0-9]+$'
+                AND ${adminFilter.sql}
                 ${HIDDEN_INBOX_SQL}
         `;
-        const [rows] = await db.query(sql, [adminId]);
+        const [rows] = await db.query(sql, [...adminFilter.params, adminId]);
         res.json({ unreadCount: rows[0].unreadCount || 0 });
     } catch (err) {
         console.error("Okunmamış bildirim sayısı alınamadı:", err);
@@ -717,6 +720,12 @@ app.get('/api/user-conversations', authenticateToken, async (req, res) => {
                 m.vehicle_id,
                 v.brand,
                 v.model,
+                v.year,
+                v.color,
+                v.mileage,
+                v.gear,
+                v.fuel,
+                v.sale_price,
                 admin.name as admin_name,
                 (SELECT COUNT(*) FROM messages m2
                  WHERE m2.conversation_id = m.conversation_id
@@ -810,17 +819,22 @@ app.delete('/api/user/conversations/:conversationId', authenticateToken, async (
 // Tüm okunmamış bildirimleri okundu işaretle
 app.post('/api/notifications/mark-all-read', authenticateToken, async (req, res) => {
     try {
+        await ensureMessagesSchema();
         const userId = req.user.id;
 
         if (req.user.role === 'admin') {
+            const adminFilter = adminConversationFilterSql('messages', userId);
             await db.query(
                 `UPDATE messages SET is_read_by_admin = TRUE
                  WHERE is_read_by_admin = FALSE
-                 AND conversation_id REGEXP '^user_[0-9]+_vehicle_[0-9]+_admin_[0-9]+$'`
+                 AND ${adminFilter.sql}`,
+                adminFilter.params
             );
             io.emit('admin_refresh_conversations');
             io.emit('conversation_read_status_updated', { conversationId: null });
+            io.emit('notifications_were_reset');
         } else {
+            await ensureHiddenInboxTable();
             await db.query(
                 `UPDATE messages SET is_read_by_user = TRUE
                  WHERE receiver_id = ? AND is_read_by_user = FALSE`,
@@ -832,7 +846,10 @@ app.post('/api/notifications/mark-all-read', authenticateToken, async (req, res)
         res.status(200).json({ message: 'Tüm mesajlar okundu olarak işaretlendi.' });
     } catch (err) {
         console.error('Tümünü okundu işaretleme hatası:', err);
-        res.status(500).json({ message: 'Bildirimler güncellenirken bir hata oluştu.' });
+        res.status(500).json({
+            message: 'Bildirimler güncellenirken bir hata oluştu.',
+            hint: err.code || err.message,
+        });
     }
 });
 
@@ -1070,7 +1087,7 @@ io.on('connection', (socket) => {
 
             // RabbitMQ yoksa doğrudan işle (geliştirme yedek yolu)
             const result = await processIncomingMessage(db, queuePayload);
-            emitMessageProcessed(io, result);
+            await emitMessageProcessed(io, db, result);
         } catch (err) {
             console.error('❌ Mesaj işlenemedi:', err);
         }
@@ -1082,22 +1099,24 @@ io.on('connection', (socket) => {
         if (!adminId) return;
 
         // Güvenlik: Sadece kendi bildirimlerini temizleyebilir
-        if (socket.userId !== adminId || socket.userRole !== 'admin') {
+        if (Number(socket.userId) !== Number(adminId) || socket.userRole !== 'admin') {
             console.error(`🚨 GÜVENLİK: Socket user ${socket.userId} başkasının bildirimlerini temizlemeye çalıştı!`);
             return;
         }
 
         try {
+            await ensureMessagesSchema();
             let updateQuery, updateParams;
 
             if (conversationId) {
                 updateQuery = 'UPDATE messages SET is_read_by_admin = TRUE WHERE conversation_id = ? AND is_read_by_admin = FALSE';
                 updateParams = [conversationId];
             } else {
+                const adminFilter = adminConversationFilterSql('messages', adminId);
                 updateQuery = `UPDATE messages SET is_read_by_admin = TRUE 
                     WHERE is_read_by_admin = FALSE 
-                    AND conversation_id REGEXP '^user_[0-9]+_vehicle_[0-9]+_admin_[0-9]+$'`;
-                updateParams = [];
+                    AND ${adminFilter.sql}`;
+                updateParams = adminFilter.params;
             }
 
             await db.query(updateQuery, updateParams);
@@ -1124,12 +1143,13 @@ io.on('connection', (socket) => {
         if (!userId) return;
 
         // Güvenlik: Sadece kendi bildirimlerini temizleyebilir
-        if (socket.userId !== userId || socket.userRole !== 'user') {
+        if (Number(socket.userId) !== Number(userId) || socket.userRole !== 'user') {
             console.error(`🚨 GÜVENLİK: Socket user ${socket.userId} başkasının bildirimlerini temizlemeye çalıştı!`);
             return;
         }
 
         try {
+            await ensureMessagesSchema();
             let updateQuery, updateParams;
 
             if (conversationId) {
@@ -1165,7 +1185,9 @@ io.on('connection', (socket) => {
 app.get('/api/conversations', authenticateToken, requireAdmin, async (req, res) => {
     try {
         await ensureHiddenInboxTable();
+        await ensureMessagesSchema();
         const adminId = req.user.id;
+        const adminFilter = adminConversationFilterSql('m', adminId);
 
         const sql = `
             SELECT
@@ -1175,6 +1197,13 @@ app.get('/api/conversations', authenticateToken, requireAdmin, async (req, res) 
                 m.vehicle_id,
                 v.brand,
                 v.model,
+                v.year,
+                v.color,
+                v.mileage,
+                v.gear,
+                v.fuel,
+                v.sale_price,
+                (SELECT vp.photo_url FROM vehicle_photos vp WHERE vp.vehicle_id = v.id ORDER BY vp.id ASC LIMIT 1) AS photo_url,
                 CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(m.conversation_id, 'user_', -1), '_vehicle_', 1) AS UNSIGNED) as user_id,
                 u.name as user_name,
                 (SELECT COUNT(*) FROM messages m2
@@ -1184,7 +1213,8 @@ app.get('/api/conversations', authenticateToken, requireAdmin, async (req, res) 
             INNER JOIN (
                 SELECT conversation_id, MAX(id) as max_id
                 FROM messages
-                WHERE conversation_id REGEXP '^user_[0-9]+_vehicle_[0-9]+_admin_[0-9]+$'
+                WHERE conversation_id REGEXP ?
+                  AND conversation_id LIKE ?
                 GROUP BY conversation_id
             ) latest ON m.id = latest.max_id
             LEFT JOIN vehicles v ON m.vehicle_id = v.id
@@ -1192,13 +1222,18 @@ app.get('/api/conversations', authenticateToken, requireAdmin, async (req, res) 
                 SUBSTRING_INDEX(SUBSTRING_INDEX(m.conversation_id, 'user_', -1), '_vehicle_', 1) AS UNSIGNED
             )
             WHERE
-                m.conversation_id REGEXP '^user_[0-9]+_vehicle_[0-9]+_admin_[0-9]+$'
+                ${adminFilter.sql}
               AND (u.role = 'user' OR u.id IS NULL)
               ${HIDDEN_INBOX_SQL}
             ORDER BY m.created_at DESC
         `;
 
-        const [conversations] = await db.query(sql, [adminId]);
+        const [conversations] = await db.query(sql, [
+            ADMIN_CONV_REGEXP,
+            `%_admin_${adminId}`,
+            ...adminFilter.params,
+            adminId,
+        ]);
         res.json(conversations);
 
     } catch (err) {
@@ -1228,15 +1263,17 @@ cron.schedule('0 0 * * *', cleanupOldMessages, {
 console.log('⏰ Otomatik mesaj temizleme görevi, her gün gece yarısı 30 günden eski mesajları silecek şekilde ayarlandı.');
 
 const PORT = process.env.PORT || 5000;
-ensureHiddenInboxTable()
-    .then(() => console.log('✅ Gelen kutusu (hidden_conversations) tablosu hazır.'))
-    .catch((err) => console.error('❌ hidden_conversations tablosu oluşturulamadı:', err));
+Promise.all([ensureHiddenInboxTable(), ensureMessagesSchema()])
+    .then(() => console.log('✅ Gelen kutusu ve mesaj şeması hazır.'))
+    .catch((err) => console.error('❌ Mesaj/gelen kutusu şeması hazırlanamadı:', err));
 
 connectRedis()
     .then(() => initSocketBridge())
     .then(() => {
         subscribeSocketDispatch(io, (ioInstance, dispatch) => {
-            emitMessageProcessed(ioInstance, dispatch);
+            emitMessageProcessed(ioInstance, db, dispatch).catch((err) => {
+                console.error('Socket dispatch emit hatası:', err);
+            });
         });
     })
     .catch((err) => console.warn('Redis/socket köprüsü başlatma:', err.message));
