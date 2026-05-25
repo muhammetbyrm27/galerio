@@ -58,6 +58,42 @@ function UserConversationsModal({ closeModal, openChatForVehicle }) {
         fetchUserConversations();
     }, [fetchUserConversations]);
 
+    const handleRemoveFromInbox = async (e, conversationId) => {
+        e.stopPropagation();
+        if (
+            !window.confirm(
+                'Bu sohbet yalnızca sizin gelen kutunuzdan kaldırılır. Karşı tarafın mesajları silinmez. Devam edilsin mi?'
+            )
+        ) {
+            return;
+        }
+        try {
+            const token = localStorage.getItem('token');
+            await axios.delete(`${API_URL}/api/user/conversations/${conversationId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            fetchUserConversations();
+        } catch (err) {
+            alert(err.response?.data?.message || 'Sohbet kaldırılamadı.');
+        }
+    };
+
+    const handleMarkAllAsRead = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            await axios.post(
+                `${API_URL}/api/notifications/mark-all-read`,
+                {},
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const decodedUser = jwtDecode(token);
+            socket.emit('user_cleared_notifications', { userId: decodedUser.id });
+            fetchUserConversations();
+        } catch (err) {
+            alert(err.response?.data?.message || 'Bildirimler güncellenemedi.');
+        }
+    };
+
     const handleConversationClick = (vehicleId, conversationId) => {
         if (!vehicleId) {
             alert("Bu sohbete ait araç bilgisi bulunamadı.");
@@ -89,7 +125,19 @@ function UserConversationsModal({ closeModal, openChatForVehicle }) {
             <div className="modal-content user-conversations-modal" onClick={(e) => e.stopPropagation()}>
                 <header className="modal-header-user">
                     <h2>Gelen Kutusu</h2>
-                    <button className="modal-close-btn" onClick={closeModal}>×</button>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        {conversations.length > 0 && (
+                            <button
+                                type="button"
+                                className="modal-close-btn"
+                                title="Tümünü okundu işaretle"
+                                onClick={handleMarkAllAsRead}
+                            >
+                                ✓
+                            </button>
+                        )}
+                        <button className="modal-close-btn" onClick={closeModal}>×</button>
+                    </div>
                 </header>
                 <main className="modal-body-user">
                     {isLoading ? (
@@ -124,8 +172,14 @@ function UserConversationsModal({ closeModal, openChatForVehicle }) {
                                             </span>
                                         )}
                                     </div>
-                                    {/* ===> YENİ BUTON: Silme butonu eklendi <=== */}
-
+                                    <button
+                                        type="button"
+                                        className="delete-convo-btn"
+                                        title="Gelen kutusundan kaldır"
+                                        onClick={(e) => handleRemoveFromInbox(e, convo.conversation_id)}
+                                    >
+                                        🗑️
+                                    </button>
                                 </div>
                             ))}
                         </div>

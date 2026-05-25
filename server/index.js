@@ -3,7 +3,6 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const mysql = require('mysql2');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
@@ -12,6 +11,32 @@ const fs = require('fs');
 const http = require('http');
 const { Server } = require("socket.io");
 const cron = require('node-cron');
+const {
+    connectRedis,
+    pingRedis,
+    isRedisConfigured,
+    isRedisReady,
+    getCache,
+    setCache,
+    invalidateVehiclesCache,
+    CACHE_KEYS,
+} = require('./lib/redis');
+const { pool: db } = require('./lib/db');
+const {
+    ensureHiddenInboxTable,
+    hideConversationForUser,
+    unhideConversationForUser,
+    HIDDEN_INBOX_SQL,
+} = require('./lib/inbox');
+const {
+    connectRabbitMQ,
+    pingRabbitMQ,
+    isRabbitConfigured,
+    publishMessage,
+} = require('./lib/rabbitmq');
+const { initSocketBridge, subscribeSocketDispatch } = require('./lib/socketBridge');
+const { processIncomingMessage } = require('./lib/messageProcessor');
+const { emitMessageProcessed } = require('./lib/socketEmit');
 require('dotenv').config();
 
 
@@ -26,6 +51,27 @@ const io = new Server(server, {
     }
 });
 
+const applySocketAuth = (socket, token) => {
+    if (!token) return false;
+    try {
+        const user = jwt.verify(token, process.env.JWT_SECRET);
+        socket.userId = user.id;
+        socket.userRole = user.role;
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+// Socket bağlantısında JWT ile kullanıcı kimliği (mesaj/bildirim için)
+io.use((socket, next) => {
+    const token = socket.handshake.auth?.token;
+    if (token) {
+        applySocketAuth(socket, token);
+    }
+    next();
+});
+
 app.use(cors({
     origin: process.env.CLIENT_URL || '*',
     credentials: true
@@ -38,18 +84,39 @@ if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir);
 }
 
-const db = mysql.createPool({
-  connectionLimit: 10,
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT || 3306,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  timezone: '+03:00',
-  ssl: process.env.DB_HOST !== 'localhost' ? { rejectUnauthorized: true } : false
-}).promise();
-
 console.log('✅ MySQL bağlantı havuzu oluşturuldu.');
+
+app.get('/api/health', async (req, res) => {
+    try {
+        await db.query('SELECT 1');
+        const redisConfigured = isRedisConfigured();
+        const redisConnected = redisConfigured ? await pingRedis() : null;
+        const rabbitConfigured = isRabbitConfigured();
+        const rabbitConnected = rabbitConfigured ? await pingRabbitMQ() : null;
+        res.json({
+            status: 'ok',
+            database: 'connected',
+            redis: redisConfigured
+                ? redisConnected
+                    ? 'connected'
+                    : 'disconnected'
+                : 'disabled',
+            rabbitmq: rabbitConfigured
+                ? rabbitConnected
+                    ? 'connected'
+                    : 'disconnected'
+                : 'disabled',
+            queue: process.env.RABBITMQ_URL ? 'galerio.messages' : null,
+            uptime: process.uptime(),
+        });
+    } catch (err) {
+        res.status(503).json({
+            status: 'error',
+            database: 'disconnected',
+            message: err.message,
+        });
+    }
+});
 
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -141,7 +208,9 @@ app.post('/api/login', async (req, res) => {
 
 app.get('/api/admin-user', authenticateToken, async (req, res) => {
     try {
-        const [admins] = await db.query('SELECT id, name FROM users WHERE role = "admin" LIMIT 1');
+        const [admins] = await db.query(
+            'SELECT id, name FROM users WHERE role = "admin" ORDER BY id ASC LIMIT 1'
+        );
         if (admins.length === 0) {
             return res.status(404).json({ message: 'Admin kullanıcı bulunamadı.' });
         }
@@ -243,12 +312,21 @@ app.post('/api/verify-and-reset-password', async (req, res) => {
 
 app.get('/api/vehicles', async (req, res) => {
     try {
+        const cacheKey = CACHE_KEYS.vehiclesList;
+        const cached = await getCache(cacheKey);
+        if (cached) {
+            res.set('X-Cache', 'HIT');
+            return res.json(cached);
+        }
+
         const sql = `
             SELECT v.*, 
                    (SELECT photo_url FROM vehicle_photos WHERE vehicle_id = v.id ORDER BY id ASC LIMIT 1) as photo_url 
             FROM vehicles v ORDER BY created_at DESC
         `;
         const [vehicles] = await db.query(sql);
+        await setCache(cacheKey, vehicles);
+        res.set('X-Cache', isRedisReady() ? 'MISS' : 'BYPASS');
         res.json(vehicles);
     } catch (err) {
         console.error("Araçlar alınırken hata:", err);
@@ -258,12 +336,22 @@ app.get('/api/vehicles', async (req, res) => {
 
 app.get('/api/vehicles/:id', async (req, res) => {
     try {
-        const [vehicleResults] = await db.query('SELECT * FROM vehicles WHERE id = ?', [req.params.id]);
+        const vehicleId = req.params.id;
+        const cacheKey = CACHE_KEYS.vehicleDetail(vehicleId);
+        const cached = await getCache(cacheKey);
+        if (cached) {
+            res.set('X-Cache', 'HIT');
+            return res.json(cached);
+        }
+
+        const [vehicleResults] = await db.query('SELECT * FROM vehicles WHERE id = ?', [vehicleId]);
         if (vehicleResults.length === 0) return res.status(404).json({ message: 'Araç bulunamadı' });
         
-        const [photoResults] = await db.query('SELECT * FROM vehicle_photos WHERE vehicle_id = ? ORDER BY id ASC', [req.params.id]);
+        const [photoResults] = await db.query('SELECT * FROM vehicle_photos WHERE vehicle_id = ? ORDER BY id ASC', [vehicleId]);
         const vehicle = vehicleResults[0];
         vehicle.photos = photoResults;
+        await setCache(cacheKey, vehicle);
+        res.set('X-Cache', isRedisReady() ? 'MISS' : 'BYPASS');
         res.json(vehicle);
     } catch (err) {
         console.error("Araç detayı alınırken hata:", err);
@@ -297,6 +385,7 @@ app.post('/api/vehicles', authenticateToken, requireAdmin, upload.array('photos'
             await connection.query('INSERT INTO vehicle_photos (vehicle_id, photo_url) VALUES ?', [photoValues]);
         }
         await connection.commit();
+        await invalidateVehiclesCache();
         res.status(201).json({ 
             message: 'Araç ve fotoğraflar başarıyla eklendi',
             vehicleId: vehicleId
@@ -333,6 +422,7 @@ app.put('/api/vehicles/:id', authenticateToken, requireAdmin, async (req, res) =
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Güncellenecek araç bulunamadı.' });
         }
+        await invalidateVehiclesCache(req.params.id);
         res.json({ message: 'Araç başarıyla güncellendi' });
     } catch (err) {
         console.error("Araç güncelleme hatası:", err);
@@ -348,6 +438,7 @@ app.post('/api/vehicles/:id/add-photos', authenticateToken, requireAdmin, upload
         }
         const photoValues = req.files.map(file => [vehicleId, file.path.replace(/\\/g, "/")]);
         await db.query('INSERT INTO vehicle_photos (vehicle_id, photo_url) VALUES ?', [photoValues]);
+        await invalidateVehiclesCache(vehicleId);
         res.status(201).json({ message: 'Fotoğraflar başarıyla eklendi.' });
     } catch (err) {
         console.error("FOTOĞRAF EKLEME HATASI:", err);
@@ -358,16 +449,21 @@ app.post('/api/vehicles/:id/add-photos', authenticateToken, requireAdmin, upload
 app.delete('/api/photos/:id', authenticateToken, requireAdmin, async (req, res) => {
     const photoId = req.params.id;
     try {
-        const [photoResults] = await db.query('SELECT photo_url FROM vehicle_photos WHERE id = ?', [photoId]);
+        const [photoResults] = await db.query(
+            'SELECT photo_url, vehicle_id FROM vehicle_photos WHERE id = ?',
+            [photoId]
+        );
         if (photoResults.length === 0) {
             return res.status(404).json({ message: 'Fotoğraf bulunamadı.' });
         }
         const photoPath = photoResults[0].photo_url;
+        const vehicleId = photoResults[0].vehicle_id;
         await db.query('DELETE FROM vehicle_photos WHERE id = ?', [photoId]);
         const fullPath = path.join(__dirname, photoPath);
         fs.unlink(fullPath, (err) => {
             if (err && err.code !== 'ENOENT') console.error('Dosya silme hatası:', err);
         });
+        await invalidateVehiclesCache(vehicleId);
         res.status(200).json({ message: 'Fotoğraf başarıyla silindi.' });
     } catch (err) {
         console.error("Fotoğraf silme hatası:", err);
@@ -392,6 +488,7 @@ app.delete('/api/vehicles/:id', authenticateToken, requireAdmin, async (req, res
             });
         });
         await connection.commit();
+        await invalidateVehiclesCache(vehicleId);
         res.json({ message: 'Araç ve ilgili tüm veriler başarıyla silindi' });
     } catch (err) {
         await connection.rollback();
@@ -505,14 +602,17 @@ app.post('/api/kredi/hesapla', (req, res) => {
 
 app.get('/api/notifications/unread-count', authenticateToken, requireAdmin, async (req, res) => {
     try {
+        await ensureHiddenInboxTable();
+        const adminId = req.user.id;
         const sql = `
-            SELECT COUNT(DISTINCT conversation_id) AS unreadCount 
-            FROM messages 
+            SELECT COUNT(DISTINCT m.conversation_id) AS unreadCount 
+            FROM messages m
             WHERE 
-                is_read_by_admin = FALSE 
-                AND receiver_id = ?;
+                m.is_read_by_admin = FALSE
+                AND m.conversation_id REGEXP '^user_[0-9]+_vehicle_[0-9]+_admin_[0-9]+$'
+                ${HIDDEN_INBOX_SQL}
         `;
-        const [rows] = await db.query(sql, [req.user.id]);
+        const [rows] = await db.query(sql, [adminId]);
         res.json({ unreadCount: rows[0].unreadCount || 0 });
     } catch (err) {
         console.error("Okunmamış bildirim sayısı alınamadı:", err);
@@ -530,8 +630,10 @@ app.get('/api/user-conversations', authenticateToken, async (req, res) => {
             return res.status(403).json({ message: 'Bu işlem sadece kullanıcılar içindir.' });
         }
 
+        await ensureHiddenInboxTable();
+
         const sql = `
-            SELECT DISTINCT
+            SELECT
                 m.conversation_id,
                 m.message,
                 m.created_at,
@@ -544,23 +646,24 @@ app.get('/api/user-conversations', authenticateToken, async (req, res) => {
                    AND m2.receiver_id = ?
                    AND m2.is_read_by_user = FALSE) as unread_count
             FROM messages m
-                     INNER JOIN (
-                SELECT conversation_id, MAX(created_at) as latest_time
+            INNER JOIN (
+                SELECT conversation_id, MAX(id) as max_id
                 FROM messages
+                WHERE conversation_id LIKE CONCAT('user_', ?, '_%')
                 GROUP BY conversation_id
-            ) latest ON m.conversation_id = latest.conversation_id
-                AND m.created_at = latest.latest_time
-                     LEFT JOIN vehicles v ON m.vehicle_id = v.id
-                     LEFT JOIN users admin ON admin.id = CAST(
-                    SUBSTRING_INDEX(m.conversation_id, '_admin_', -1) AS UNSIGNED
-                                                         )
+            ) latest ON m.id = latest.max_id
+            LEFT JOIN vehicles v ON m.vehicle_id = v.id
+            LEFT JOIN users admin ON admin.id = CAST(
+                SUBSTRING_INDEX(m.conversation_id, '_admin_', -1) AS UNSIGNED
+            )
             WHERE
                 m.conversation_id LIKE CONCAT('user_', ?, '_%')
-              AND admin.role = 'admin'
+              AND (admin.role = 'admin' OR admin.id IS NULL)
+              ${HIDDEN_INBOX_SQL}
             ORDER BY m.created_at DESC
         `;
 
-        const [conversations] = await db.query(sql, [userId, userId]);
+        const [conversations] = await db.query(sql, [userId, userId, userId, userId]);
         res.json(conversations);
 
     } catch (err) {
@@ -575,15 +678,19 @@ app.get('/api/user-notifications/unread-count', authenticateToken, async (req, r
             return res.status(403).json({ message: 'Bu işlem sadece kullanıcılar içindir.' });
         }
 
+        await ensureHiddenInboxTable();
+        const userId = req.user.id;
+
         const sql = `
-            SELECT COUNT(DISTINCT conversation_id) AS unreadCount 
-            FROM messages 
+            SELECT COUNT(DISTINCT m.conversation_id) AS unreadCount 
+            FROM messages m
             WHERE 
-                receiver_id = ? 
-                AND is_read_by_user = FALSE;
+                m.receiver_id = ? 
+                AND m.is_read_by_user = FALSE
+                ${HIDDEN_INBOX_SQL}
         `;
 
-        const [rows] = await db.query(sql, [req.user.id]);
+        const [rows] = await db.query(sql, [userId, userId]);
         res.json({ unreadCount: rows[0].unreadCount || 0 });
 
     } catch (err) {
@@ -592,83 +699,112 @@ app.get('/api/user-notifications/unread-count', authenticateToken, async (req, r
     }
 });
 
-// 3. KULLANICI SOHBET SİLME (sadece bir kere)
+// Kullanıcı: sohbeti yalnızca kendi gelen kutusundan kaldırır (mesajlar kalır)
 app.delete('/api/user/conversations/:conversationId', authenticateToken, async (req, res) => {
     try {
         const { conversationId } = req.params;
         const userId = req.user.id;
 
-        // GÜVENLİK KONTROLÜ
         const userIdMatch = conversationId.match(/user_(\d+)_/);
-        const userIdFromConv = userIdMatch ? parseInt(userIdMatch[1]) : null;
+        const userIdFromConv = userIdMatch ? parseInt(userIdMatch[1], 10) : null;
 
-        if (req.user.role !== 'user' || userId !== userIdFromConv) {
-            return res.status(403).json({ message: 'Bu sohbeti silme yetkiniz yok.' });
+        if (req.user.role !== 'user' || parseInt(userId, 10) !== userIdFromConv) {
+            return res.status(403).json({ message: 'Bu sohbeti kaldırma yetkiniz yok.' });
         }
 
-        const [deleteResult] = await db.query('DELETE FROM messages WHERE conversation_id = ?', [conversationId]);
-
-        if (deleteResult.affectedRows === 0) {
-            return res.status(404).json({ message: 'Silinecek sohbet bulunamadı.' });
+        const [exists] = await db.query(
+            'SELECT 1 FROM messages WHERE conversation_id = ? LIMIT 1',
+            [conversationId]
+        );
+        if (exists.length === 0) {
+            return res.status(404).json({ message: 'Sohbet bulunamadı.' });
         }
 
-        io.to(conversationId).emit('conversation_deleted', conversationId);
+        await hideConversationForUser(userId, conversationId);
         io.emit('admin_refresh_conversations');
 
-        res.status(200).json({ message: 'Sohbet başarıyla silindi.' });
-
+        res.status(200).json({ message: 'Sohbet gelen kutunuzdan kaldırıldı.' });
     } catch (err) {
-        console.error("Kullanıcı sohbeti silinirken hata:", err);
-        res.status(500).json({ message: 'Sohbet silinirken bir sunucu hatası oluştu.' });
+        console.error("Kullanıcı sohbeti gizlenirken hata:", err);
+        res.status(500).json({ message: 'Sohbet kaldırılırken bir sunucu hatası oluştu.' });
     }
 });
 
-// server.js'de mevcut duplike endpoint'leri temizleyin ve bu kodu ekleyin:
-
-// KULLANICI SOHBET SİLME ENDPOINT'İ (sadece bir tane olmalı)
-app.delete('/api/user/conversations/:conversationId', authenticateToken, async (req, res) => {
+// Tüm okunmamış bildirimleri okundu işaretle
+app.post('/api/notifications/mark-all-read', authenticateToken, async (req, res) => {
     try {
-        const { conversationId } = req.params;
         const userId = req.user.id;
 
-        // GÜVENLİK KONTROLÜ: Kullanıcı sadece kendi ID'sini içeren sohbeti silebilir
-        const userIdMatch = conversationId.match(/user_(\d+)_/);
-        const userIdFromConv = userIdMatch ? parseInt(userIdMatch[1]) : null;
-
-        if (req.user.role !== 'user' || userId !== userIdFromConv) {
-            return res.status(403).json({ message: 'Bu sohbeti silme yetkiniz yok.' });
+        if (req.user.role === 'admin') {
+            await db.query(
+                `UPDATE messages SET is_read_by_admin = TRUE
+                 WHERE is_read_by_admin = FALSE
+                 AND conversation_id REGEXP '^user_[0-9]+_vehicle_[0-9]+_admin_[0-9]+$'`
+            );
+            io.emit('admin_refresh_conversations');
+            io.emit('conversation_read_status_updated', { conversationId: null });
+        } else {
+            await db.query(
+                `UPDATE messages SET is_read_by_user = TRUE
+                 WHERE receiver_id = ? AND is_read_by_user = FALSE`,
+                [userId]
+            );
+            io.emit('conversation_read_status_updated', { conversationId: null });
         }
 
-        // Veritabanından sil
-        const [deleteResult] = await db.query('DELETE FROM messages WHERE conversation_id = ?', [conversationId]);
-
-        if (deleteResult.affectedRows === 0) {
-            return res.status(404).json({ message: 'Silinecek sohbet bulunamadı.' });
-        }
-
-        // Socket ile diğer taraflara bildir
-        io.to(conversationId).emit('conversation_deleted', conversationId);
-        io.emit('admin_refresh_conversations');
-
-        res.status(200).json({ message: 'Sohbet başarıyla silindi.' });
-
+        res.status(200).json({ message: 'Tüm mesajlar okundu olarak işaretlendi.' });
     } catch (err) {
-        console.error("Kullanıcı sohbeti silinirken hata:", err);
-        res.status(500).json({ message: 'Sohbet silinirken bir sunucu hatası oluştu.' });
+        console.error('Tümünü okundu işaretleme hatası:', err);
+        res.status(500).json({ message: 'Bildirimler güncellenirken bir hata oluştu.' });
     }
 });
-// *** YENİ ENDPOINT: Kullanıcının okunmamış mesaj sayısını getir ***
+
+// Gelen kutusunu tamamen temizle (yalnızca kendi listesi)
+app.post('/api/inbox/clear', authenticateToken, async (req, res) => {
+    try {
+        await ensureHiddenInboxTable();
+        const userId = req.user.id;
+
+        if (req.user.role === 'admin') {
+            await db.query(
+                `INSERT INTO hidden_conversations (user_id, conversation_id)
+                 SELECT DISTINCT ?, m.conversation_id
+                 FROM messages m
+                 WHERE m.conversation_id REGEXP '^user_[0-9]+_vehicle_[0-9]+_admin_[0-9]+$'
+                 ON DUPLICATE KEY UPDATE hidden_at = CURRENT_TIMESTAMP`,
+                [userId]
+            );
+            io.emit('admin_refresh_conversations');
+        } else {
+            await db.query(
+                `INSERT INTO hidden_conversations (user_id, conversation_id)
+                 SELECT DISTINCT ?, m.conversation_id
+                 FROM messages m
+                 WHERE m.conversation_id LIKE CONCAT('user_', ?, '_%')
+                 ON DUPLICATE KEY UPDATE hidden_at = CURRENT_TIMESTAMP`,
+                [userId, userId]
+            );
+        }
+
+        res.status(200).json({ message: 'Gelen kutusu temizlendi.' });
+    } catch (err) {
+        console.error('Gelen kutusu temizlenirken hata:', err);
+        res.status(500).json({ message: 'Gelen kutusu temizlenirken bir hata oluştu.' });
+    }
+});
 
 
 
 
 app.delete('/api/messages/:id', authenticateToken, async (req, res) => {
     const { id: messageId } = req.params;
-    const { id: userId, role } = req.user;
+    const { id: userId } = req.user;
     try {
         const [msgResults] = await db.query('SELECT sender_id, conversation_id FROM messages WHERE id = ?', [messageId]);
         if (msgResults.length === 0) return res.status(404).json({ message: 'Mesaj bulunamadı.' });
-        if (msgResults[0].sender_id !== userId && role !== 'admin') return res.status(403).json({ message: 'Bu mesajı silme yetkiniz yok.' });
+        if (parseInt(msgResults[0].sender_id, 10) !== parseInt(userId, 10)) {
+            return res.status(403).json({ message: 'Yalnızca kendi yazdığınız mesajları silebilirsiniz.' });
+        }
         await db.query('DELETE FROM messages WHERE id = ?', [messageId]);
         io.to(msgResults[0].conversation_id).emit('message_deleted', { messageId: parseInt(messageId) });
         io.emit('admin_refresh_conversations');
@@ -681,18 +817,26 @@ app.delete('/api/messages/:id', authenticateToken, async (req, res) => {
 
 app.delete('/api/conversations/:conversationId', authenticateToken, requireAdmin, async (req, res) => {
     const { conversationId } = req.params;
+    const adminId = req.user.id;
     try {
-        const [deleteResult] = await db.query('DELETE FROM messages WHERE conversation_id = ?', [conversationId]);
-        if (deleteResult.affectedRows > 0) {
-            io.to(conversationId).emit('conversation_deleted', conversationId);
-            io.emit('admin_refresh_conversations');
-            res.status(200).json({ message: 'Sohbet başarıyla silindi.' });
-        } else {
-            res.status(404).json({ message: 'Sohbet bulunamadı.' });
+        if (!/^user_\d+_vehicle_\d+_admin_\d+$/.test(conversationId)) {
+            return res.status(400).json({ message: 'Geçersiz sohbet kimliği.' });
         }
+
+        const [exists] = await db.query(
+            'SELECT 1 FROM messages WHERE conversation_id = ? LIMIT 1',
+            [conversationId]
+        );
+        if (exists.length === 0) {
+            return res.status(404).json({ message: 'Sohbet bulunamadı.' });
+        }
+
+        await hideConversationForUser(adminId, conversationId);
+        io.emit('admin_refresh_conversations');
+        res.status(200).json({ message: 'Sohbet gelen kutunuzdan kaldırıldı.' });
     } catch (err) { 
-        console.error("Konuşma silme hatası:", err);
-        res.status(500).json({ message: 'Sohbet silinirken bir hata oluştu.' }); 
+        console.error("Konuşma gizlenirken hata:", err);
+        res.status(500).json({ message: 'Sohbet kaldırılırken bir hata oluştu.' }); 
     }
 });
 
@@ -701,7 +845,15 @@ app.delete('/api/conversations/:conversationId', authenticateToken, requireAdmin
 // Socket.IO bölümünün düzeltilmiş versiyonu
 
 io.on('connection', (socket) => {
-    console.log('👤 Yeni socket bağlantısı:', socket.id);
+    const token = socket.handshake.auth?.token;
+    if (token) {
+        applySocketAuth(socket, token);
+    }
+    console.log(
+        '👤 Yeni socket bağlantısı:',
+        socket.id,
+        socket.userRole ? `(${socket.userRole} #${socket.userId})` : '(kimliksiz)'
+    );
 
     socket.on('join_room', (data) => {
         const { conversationId, token } = data;
@@ -728,9 +880,9 @@ io.on('connection', (socket) => {
             let hasAccess = false;
 
             // *** SIKI GÜVENLİK KONTROLÜ ***
-            if (currentUserRole === 'admin' && currentUserId === adminIdFromRoom) {
+            if (currentUserRole === 'admin' && adminIdFromRoom != null) {
                 hasAccess = true;
-                console.log(`✅ Admin ${currentUserId} kendi conversation'ına erişiyor: ${conversationId}`);
+                console.log(`✅ Admin ${currentUserId} müşteri sohbetine erişiyor: ${conversationId}`);
             } else if (currentUserRole === 'user' && currentUserId === userIdFromRoom) {
                 hasAccess = true;
                 console.log(`✅ User ${currentUserId} kendi conversation'ına erişiyor: ${conversationId}`);
@@ -752,6 +904,10 @@ io.on('connection', (socket) => {
                 socket.userId = currentUserId;
                 socket.userRole = currentUserRole;
                 socket.conversationId = conversationId;
+
+                unhideConversationForUser(currentUserId, conversationId).catch((e) =>
+                    console.error('Sohbet gizleme kaldırılamadı:', e)
+                );
 
                 // *** DÜZELTME: Sadece bu conversation'a ait mesajları getir ***
                 const sql = `
@@ -780,15 +936,26 @@ io.on('connection', (socket) => {
     });
 
     socket.on('send_message', async (data) => {
-        const { conversation_id, sender_id, receiver_id, vehicle_id, message } = data;
+        const { conversation_id, sender_id, receiver_id, vehicle_id, message, token } = data;
 
         if (!conversation_id || !sender_id || !receiver_id || !message) {
             console.error("❌ Eksik mesaj verisi:", data);
             return;
         }
 
+        // İsteğe bağlı token ile kimlik doğrulama (mobil / join_room öncesi)
+        if (token && (socket.userId == null || socket.userRole == null)) {
+            if (!applySocketAuth(socket, token)) {
+                console.error('❌ send_message token geçersiz');
+                return;
+            }
+        }
+
+        const senderIdNum = Number(sender_id);
+        const socketUserIdNum = Number(socket.userId);
+
         // *** GÜVENLİK: Mesaj gönderen kişi socket ile aynı mı? ***
-        if (socket.userId !== sender_id) {
+        if (socket.userId == null || Number.isNaN(socketUserIdNum) || socketUserIdNum !== senderIdNum) {
             console.error(`🚨 GÜVENLİK İHLALİ: Socket user ${socket.userId} başkası adına (${sender_id}) mesaj göndermeye çalıştı!`);
             return;
         }
@@ -800,83 +967,35 @@ io.on('connection', (socket) => {
         const userIdFromConv = userIdMatch ? parseInt(userIdMatch[1]) : null;
         const adminIdFromConv = adminIdMatch ? parseInt(adminIdMatch[1]) : null;
 
-        if (socket.userRole === 'user' && socket.userId !== userIdFromConv) {
+        if (socket.userRole === 'user' && socketUserIdNum !== userIdFromConv) {
             console.error(`🚨 GÜVENLİK: User ${socket.userId} başkasının conversation'ına mesaj göndermeye çalıştı!`);
             return;
         }
 
-        if (socket.userRole === 'admin' && socket.userId !== adminIdFromConv) {
-            console.error(`🚨 GÜVENLİK: Admin ${socket.userId} başkasının conversation'ına mesaj göndermeye çalıştı!`);
+        if (socket.userRole === 'admin' && adminIdFromConv == null) {
+            console.error(`🚨 GÜVENLİK: Geçersiz admin conversation: ${conversation_id}`);
             return;
         }
 
         try {
-            const [senderResult] = await db.query('SELECT name, role FROM users WHERE id = ?', [sender_id]);
-            if(senderResult.length === 0) {
-                console.error("❌ Gönderici bulunamadı:", sender_id);
-                return;
-            }
-            const sender = senderResult[0];
-
-            // *** MESAJ VERİTABANINA KAYDET ***
-            const sql = "INSERT INTO messages (conversation_id, sender_id, receiver_id, vehicle_id, message, created_at, is_read_by_admin, is_read_by_user) VALUES (?, ?, ?, ?, ?, NOW(), ?, ?)";
-
-            // Admin gönderiyorsa admin tarafı okundu, user gönderiyorsa user tarafı okundu
-            const isReadByAdmin = sender.role === 'admin' ? true : false;
-            const isReadByUser = sender.role === 'user' ? true : false;
-
-            const [result] = await db.query(sql, [conversation_id, sender_id, receiver_id, vehicle_id, message, isReadByAdmin, isReadByUser]);
-
-            const newMessage = {
-                id: result.insertId,
+            const queuePayload = {
                 conversation_id,
                 sender_id,
                 receiver_id,
                 vehicle_id,
                 message,
-                sender_name: sender.name,
-                created_at: new Date().toISOString()
             };
 
-            // *** SADECE İLGİLİ ODAYA MESAJ GÖNDER ***
-            console.log(`📤 Mesaj odaya gönderiliyor: ${conversation_id}`);
-            io.to(conversation_id).emit('receive_message', newMessage);
-
-            // *** BİLDİRİM SİSTEMİ ***
-            if (sender.role === 'user') {
-                // User mesaj gönderiyorsa admin'e bildirim gönder
-                console.log(`📨 User ${sender_id} mesaj gönderdi, admin ${receiver_id}'e bildirim gönderiliyor`);
-
-                const adminSockets = Array.from(io.sockets.sockets.values())
-                    .filter(s => s.userRole === 'admin' && s.userId === receiver_id);
-
-                console.log(`🎯 ${adminSockets.length} admin socket bulundu`);
-
-                adminSockets.forEach(adminSocket => {
-                    adminSocket.emit('admin_new_unread_message', {
-                        conversationId: conversation_id,
-                        message: newMessage
-                    });
-                });
-
-                // Tüm admin'lere konuşma listesi yenileme sinyali gönder
-                io.emit('admin_refresh_conversations');
-
-            } else if (sender.role === 'admin') {
-                // Admin mesaj gönderiyorsa user'a bildirim gönder
-                console.log(`📨 Admin ${sender_id} mesaj gönderdi, user ${receiver_id}'e bildirim gönderiliyor`);
-
-                const userSockets = Array.from(io.sockets.sockets.values())
-                    .filter(s => s.userRole === 'user' && s.userId === receiver_id);
-
-                console.log(`🎯 ${userSockets.length} user socket bulundu`);
-
-                userSockets.forEach(userSocket => {
-                    userSocket.emit('update_notification_count');
-                });
+            const queued = await publishMessage(queuePayload);
+            if (queued) {
+                return;
             }
+
+            // RabbitMQ yoksa doğrudan işle (geliştirme yedek yolu)
+            const result = await processIncomingMessage(db, queuePayload);
+            emitMessageProcessed(io, result);
         } catch (err) {
-            console.error("❌ Mesaj veritabanına kaydedilemedi:", err);
+            console.error('❌ Mesaj işlenemedi:', err);
         }
     });
 
@@ -895,17 +1014,28 @@ io.on('connection', (socket) => {
             let updateQuery, updateParams;
 
             if (conversationId) {
-                updateQuery = 'UPDATE messages SET is_read_by_admin = TRUE WHERE receiver_id = ? AND conversation_id = ? AND is_read_by_admin = FALSE';
-                updateParams = [adminId, conversationId];
+                updateQuery = 'UPDATE messages SET is_read_by_admin = TRUE WHERE conversation_id = ? AND is_read_by_admin = FALSE';
+                updateParams = [conversationId];
             } else {
-                updateQuery = 'UPDATE messages SET is_read_by_admin = TRUE WHERE receiver_id = ? AND is_read_by_admin = FALSE';
-                updateParams = [adminId];
+                updateQuery = `UPDATE messages SET is_read_by_admin = TRUE 
+                    WHERE is_read_by_admin = FALSE 
+                    AND conversation_id REGEXP '^user_[0-9]+_vehicle_[0-9]+_admin_[0-9]+$'`;
+                updateParams = [];
             }
 
             await db.query(updateQuery, updateParams);
 
+            if (conversationId) {
+                io.to(conversationId).emit('messages_read_update', {
+                    conversationId,
+                    readerRole: 'admin',
+                });
+            }
+
+            io.emit('admin_refresh_conversations');
+            io.emit('conversation_read_status_updated', { conversationId: conversationId || null });
             socket.emit('notifications_were_reset');
-            console.log(`📭 Admin ${adminId} bildirimleri temizledi. ConversationId: ${conversationId || 'Tümü'}`);
+            console.log(`📭 Admin ${adminId} bildirimleri temizlendi. ConversationId: ${conversationId || 'Tümü'}`);
         } catch (err) {
             console.error("Admin bildirim temizleme hatası:", err);
         }
@@ -935,8 +1065,16 @@ io.on('connection', (socket) => {
 
             await db.query(updateQuery, updateParams);
 
+            if (conversationId) {
+                io.to(conversationId).emit('messages_read_update', {
+                    conversationId,
+                    readerRole: 'user',
+                });
+            }
+
             socket.emit('user_notifications_were_reset');
-            console.log(`📭 User ${userId} bildirimleri temizledi. ConversationId: ${conversationId || 'Tümü'}`);
+            io.emit('conversation_read_status_updated', { conversationId: conversationId || null });
+            console.log(`📭 User ${userId} bildirimleri temizlendi. ConversationId: ${conversationId || 'Tümü'}`);
         } catch (err) {
             console.error("User bildirim temizleme hatası:", err);
         }
@@ -949,39 +1087,41 @@ io.on('connection', (socket) => {
 
 app.get('/api/conversations', authenticateToken, requireAdmin, async (req, res) => {
     try {
+        await ensureHiddenInboxTable();
         const adminId = req.user.id;
 
         const sql = `
-            SELECT DISTINCT
+            SELECT
                 m.conversation_id,
                 m.message,
                 m.created_at,
                 m.vehicle_id,
                 v.brand,
                 v.model,
-                CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(m.conversation_id, 'user_', -1), '_', 1) AS UNSIGNED) as user_id,
+                CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(m.conversation_id, 'user_', -1), '_vehicle_', 1) AS UNSIGNED) as user_id,
                 u.name as user_name,
                 (SELECT COUNT(*) FROM messages m2
                  WHERE m2.conversation_id = m.conversation_id
-                   AND m2.receiver_id = ?
                    AND m2.is_read_by_admin = FALSE) as unread_count
             FROM messages m
-                     INNER JOIN (
-                SELECT conversation_id, MAX(created_at) as latest_time
+            INNER JOIN (
+                SELECT conversation_id, MAX(id) as max_id
                 FROM messages
+                WHERE conversation_id REGEXP '^user_[0-9]+_vehicle_[0-9]+_admin_[0-9]+$'
                 GROUP BY conversation_id
-            ) latest ON m.conversation_id = latest.conversation_id AND m.created_at = latest.latest_time
-                     LEFT JOIN vehicles v ON m.vehicle_id = v.id
-                     LEFT JOIN users u ON u.id = CAST(
-                    SUBSTRING_INDEX(SUBSTRING_INDEX(m.conversation_id, 'user_', -1), '_', 1) AS UNSIGNED
-                                                 )
+            ) latest ON m.id = latest.max_id
+            LEFT JOIN vehicles v ON m.vehicle_id = v.id
+            LEFT JOIN users u ON u.id = CAST(
+                SUBSTRING_INDEX(SUBSTRING_INDEX(m.conversation_id, 'user_', -1), '_vehicle_', 1) AS UNSIGNED
+            )
             WHERE
-                m.conversation_id LIKE CONCAT('%_admin_', ?, '%')
-              AND u.role = 'user'
+                m.conversation_id REGEXP '^user_[0-9]+_vehicle_[0-9]+_admin_[0-9]+$'
+              AND (u.role = 'user' OR u.id IS NULL)
+              ${HIDDEN_INBOX_SQL}
             ORDER BY m.created_at DESC
         `;
 
-        const [conversations] = await db.query(sql, [adminId, adminId]);
+        const [conversations] = await db.query(sql, [adminId]);
         res.json(conversations);
 
     } catch (err) {
@@ -1011,6 +1151,21 @@ cron.schedule('0 0 * * *', cleanupOldMessages, {
 console.log('⏰ Otomatik mesaj temizleme görevi, her gün gece yarısı 30 günden eski mesajları silecek şekilde ayarlandı.');
 
 const PORT = process.env.PORT || 5000;
+ensureHiddenInboxTable()
+    .then(() => console.log('✅ Gelen kutusu (hidden_conversations) tablosu hazır.'))
+    .catch((err) => console.error('❌ hidden_conversations tablosu oluşturulamadı:', err));
+
+connectRedis()
+    .then(() => initSocketBridge())
+    .then(() => {
+        subscribeSocketDispatch(io, (ioInstance, dispatch) => {
+            emitMessageProcessed(ioInstance, dispatch);
+        });
+    })
+    .catch((err) => console.warn('Redis/socket köprüsü başlatma:', err.message));
+
+connectRabbitMQ().catch((err) => console.warn('RabbitMQ başlatma:', err.message));
+
 server.listen(PORT, () => {
     console.log(`🚀 Sunucu ${PORT} portunda çalışıyor.`);
     cleanupOldMessages();

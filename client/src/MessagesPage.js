@@ -83,17 +83,45 @@ function MessagesPage() {
     };
   }, [fetchConversations, selectedConversation]);
 
-  const handleDeleteConversation = async (e, conversationId) => {
+  const handleRemoveFromInbox = async (e, conversationId) => {
     e.stopPropagation();
-    if (window.confirm("Bu sohbeti ve içindeki tüm mesajları kalıcı olarak silmek istediğinizden emin misiniz?")) {
-        try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`${API_URL}/api/conversations/${conversationId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-        } catch (error) {
-            alert(error.response?.data?.message || "Sohbet silinirken bir hata oluştu.");
+    if (
+      window.confirm(
+        'Bu sohbet yalnızca sizin gelen kutunuzdan kaldırılır. Karşı tarafın mesajları silinmez. Devam edilsin mi?'
+      )
+    ) {
+      try {
+        const token = localStorage.getItem('token');
+        await axios.delete(`${API_URL}/api/conversations/${conversationId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (selectedConversation?.conversation_id === conversationId) {
+          setSelectedConversation(null);
         }
+        fetchConversations();
+      } catch (error) {
+        alert(error.response?.data?.message || 'Sohbet kaldırılırken bir hata oluştu.');
+      }
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${API_URL}/api/notifications/mark-all-read`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      try {
+        const adminId = jwtDecode(token).id;
+        socket.emit('admin_cleared_notifications', { adminId });
+      } catch (e) {
+        console.error('Token decode hatası:', e);
+      }
+      fetchConversations();
+    } catch (error) {
+      alert(error.response?.data?.message || 'Bildirimler güncellenemedi.');
     }
   };
 
@@ -147,6 +175,7 @@ function MessagesPage() {
         <div className="sidebar-header">
           <button onClick={() => navigate('/dashboard')} className="back-to-dashboard-btn" title="Yönetim Paneline Dön">‹ Panele Dön</button>
           <h2>Gelen Kutusu</h2>
+          <button onClick={handleMarkAllAsRead} className="refresh-btn" title="Tümünü okundu işaretle">✓</button>
           <button onClick={refreshConversations} className="refresh-btn" title="Yenile">🔄</button>
         </div>
         <div className="conversations-list">
@@ -188,7 +217,7 @@ function MessagesPage() {
                       {hasUnreadMessages && <span className="unread-indicator"> ●</span>}
                     </p>
                   </div>
-                 <button className="delete-conversation-btn" title="Sohbeti Sil" onClick={(e) => handleDeleteConversation(e, convo.conversation_id)}>🗑️</button>
+                 <button className="delete-conversation-btn" title="Gelen kutusundan kaldır" onClick={(e) => handleRemoveFromInbox(e, convo.conversation_id)}>🗑️</button>
                 </div>
               );
             })

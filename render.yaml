@@ -1,0 +1,18 @@
+# Render Blueprint — mevcut servisi güncellemek için repo kökünde
+# https://galerio-xsmd.onrender.com
+
+services:
+  - type: web
+    name: galerio-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CLIENT_URL
+        value: "*"
+      # Render Dashboard'da tanımlayın: DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, JWT_SECRET
+      # İsteğe bağlı: REDIS_URL, RABBITMQ_URL (yoksa API yedek modda çalışır)

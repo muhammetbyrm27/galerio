@@ -183,10 +183,16 @@ function ChatModal({ vehicle, closeModal }) {
     setNewMessage('');
   };
 
-  const handleDeleteMessage = (messageId) => {
-    if (window.confirm("Mesajı silmek istediğinizden emin misiniz? (Bu sadece sizin görünümünüzden silinecek)")) {
-      // Backend'e istek GÖNDERMEYİN - sadece state'ten kaldırın
-      setMessages(prevMessages => prevMessages.filter(msg => msg.id !== messageId));
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm('Mesajı silmek istediğinizden emin misiniz?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/api/messages/${messageId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch (error) {
+      console.error('Mesaj silinemedi:', error);
+      alert(error.response?.data?.message || 'Mesaj silinemedi.');
     }
   };
 

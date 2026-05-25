@@ -1,0 +1,123 @@
+# Galerio — Faz 1: Docker Compose
+# Kullanım: docker compose up -d --build
+# API: http://localhost:5000/api/health
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: galerio-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: galerio
+      MYSQL_USER: galerio
+      MYSQL_PASSWORD: galerio
+    # Yerel MySQL 3306 kullanıyorsa çakışmayı önlemek için host:3307
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: galerio-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: galerio-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: galerio
+      RABBITMQ_DEFAULT_PASS: galerio
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: galerio-api
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: galerio
+      DB_PASSWORD: galerio
+      DB_NAME: galerio
+      DB_SSL: "false"
+      JWT_SECRET: galerio_docker_jwt_secret_change_in_production
+      CLIENT_URL: "*"
+      ADMIN_EMAIL: admin@galerio.com
+      ADMIN_PASSWORD: admin123456
+      ADMIN_NAME: Galeri Admin
+      REDIS_URL: redis://redis:6379
+      REDIS_CACHE_TTL: "60"
+      RABBITMQ_URL: amqp://galerio:galerio@rabbitmq:5672
+    volumes:
+      - ./server/uploads:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: galerio-worker
+    restart: unless-stopped
+    command: ["node", "worker.js"]
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: galerio
+      DB_PASSWORD: galerio
+      DB_NAME: galerio
+      DB_SSL: "false"
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://galerio:galerio@rabbitmq:5672
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  mysql_data:

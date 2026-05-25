@@ -18,11 +18,11 @@ const sahibindenGearMap = {
 };
 
 const arabamFuelMap = {
-    'benzin': 'benzinli',
-    'lpg': 'benzin-lpg',
+    'benzin': 'benzin',
+    'lpg': 'lpg',
     'dizel': 'dizel',
     'hibrit': 'hibrit',
-    'elektrik': 'elektrikli'
+    'elektrik': 'elektrik'
 };
 
 const arabamGearMap = {
@@ -89,23 +89,47 @@ export default function MarketValuePage() {
         window.open(finalUrl, '_blank');
     };
 
+    const slugifyArabam = (text) =>
+        String(text || '')
+            .toLowerCase()
+            .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ı/g, 'i')
+            .replace(/ö/g, 'o').replace(/ç/g, 'c')
+            .replace(/\+/g, '-plus')
+            .replace(/_/g, '-')
+            .replace(/\s+/g, '-')
+            .replace(/[^a-z0-9-]/g, '')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+
+    const compactModelSlug = (text) =>
+        String(text || '')
+            .toLowerCase()
+            .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ı/g, 'i')
+            .replace(/ö/g, 'o').replace(/ç/g, 'c')
+            .replace(/\s+/g, '')
+            .replace(/[^a-z0-9]/g, '');
+
+    const buildArabamPath = (brand, model) => {
+        const brandSlug = slugifyArabam(brand);
+        if (!brandSlug) return '/ikinci-el/otomobil';
+        if (!model) return `/ikinci-el/otomobil/${brandSlug}`;
+        if (brand === 'DS Automobiles') {
+            const modelSlug = `${brandSlug}-${compactModelSlug(model)}`;
+            return `/ikinci-el/otomobil/${brandSlug}/${modelSlug}`;
+        }
+        return `/ikinci-el/otomobil/${brandSlug}-${slugifyArabam(model)}`;
+    };
+
     // Arabam.com yönlendirme
     const redirectToArabamCom = () => {
         const finalBrand = getFinalBrand();
         const finalModel = getFinalModel();
-        let path = '/ikinci-el/otomobil';
-
-        if (finalBrand) {
-            path += `/${finalBrand.toLowerCase().replace(/\s+/g, '-')}`;
-            if (finalModel) {
-                path += `-${finalModel.toLowerCase().replace(/\s+/g, '-')}`;
-            }
-        }
-
-        if (filters.gear && arabamGearMap[filters.gear]) path += `-${arabamGearMap[filters.gear]}`;
-        if (filters.fuel && arabamFuelMap[filters.fuel]) path += `-${arabamFuelMap[filters.fuel]}`;
+        const path = buildArabamPath(finalBrand, finalModel);
 
         const params = new URLSearchParams();
+        params.set('take', '50');
+        if (filters.gear && arabamGearMap[filters.gear]) params.set('vites-tipi', arabamGearMap[filters.gear]);
+        if (filters.fuel && arabamFuelMap[filters.fuel]) params.set('yakit-tipi', arabamFuelMap[filters.fuel]);
         if (filters.yearMin) params.append('minYear', filters.yearMin);
         if (filters.yearMax) params.append('maxYear', filters.yearMax);
         if (filters.kmMin) params.append('minkm', filters.kmMin);

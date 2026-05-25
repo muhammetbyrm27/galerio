@@ -1,4 +1,18 @@
-client/node_modules
-server/node_modules/
-server/.env*
-node_modules
+node_modules/
+client/node_modules/
+mobile/node_modules/
+
+server/.env
+server/.env.*
+!server/.env.example
+
+mobile/.env
+mobile/.env.local
+
+client/.env
+client/.env.local
+!client/.env.example
+
+# Yüklenen araç fotoğrafları (canlıda Render disk / harici storage)
+server/uploads/*
+!server/uploads/.gitkeep
