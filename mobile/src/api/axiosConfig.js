@@ -4,7 +4,7 @@ import API_URL from '../config';
 
 const api = create({
   baseURL: `${API_URL.replace(/\/$/, '')}/api`,
-  timeout: 15000,
+  timeout: 60000,
 });
 
 api.interceptors.request.use(

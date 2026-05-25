@@ -138,7 +138,7 @@ const requireAdmin = (req, res, next) => {
 };
 
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, 'uploads/'),
+    destination: (req, file, cb) => cb(null, uploadsDir),
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, uniqueSuffix + path.extname(file.originalname));
@@ -191,18 +191,38 @@ app.post('/api/register', async (req, res) => {
 
 app.post('/api/login', async (req, res) => {
     try {
+        if (!process.env.JWT_SECRET) {
+            console.error('JWT_SECRET tanımlı değil (Render Environment Variables).');
+            return res.status(503).json({ message: 'Sunucu yapılandırması eksik (JWT_SECRET).' });
+        }
         const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ message: 'E-posta ve şifre zorunludur.' });
+        }
         const [results] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
         if (results.length === 0) return res.status(401).json({ message: 'Kullanıcı bulunamadı veya şifre yanlış.' });
         const user = results[0];
-        const isMatch = await bcrypt.compare(password, user.password);
+        if (!user.password || typeof user.password !== 'string') {
+            console.error('Geçersiz şifre hash:', email);
+            return res.status(401).json({ message: 'Kullanıcı bulunamadı veya şifre yanlış.' });
+        }
+        let isMatch = false;
+        try {
+            isMatch = await bcrypt.compare(password, user.password);
+        } catch (bcryptErr) {
+            console.error('bcrypt hatası:', email, bcryptErr.message);
+            return res.status(401).json({ message: 'Kullanıcı bulunamadı veya şifre yanlış.' });
+        }
         if (!isMatch) return res.status(401).json({ message: 'Kullanıcı bulunamadı veya şifre yanlış.' });
         const payload = { id: user.id, name: user.name, email: user.email, role: user.role };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '8h' });
         res.json({ token });
     } catch (err) {
         console.error("Giriş hatası:", err);
-        res.status(500).json({ message: 'Giriş sırasında bir sunucu hatası oluştu.' });
+        res.status(500).json({
+            message: 'Giriş sırasında bir sunucu hatası oluştu.',
+            hint: err.code || err.message,
+        });
     }
 });
 
@@ -361,8 +381,12 @@ app.get('/api/vehicles/:id', async (req, res) => {
 
 app.post('/api/vehicles', authenticateToken, requireAdmin, upload.array('photos', 10), async (req, res) => {
     const { brand, model, year, color, gear, fuel, mileage, purchase_price, sale_price, description } = req.body;
-    if (!brand || !model || !year) {
+    if (!brand || !model || year === undefined || year === null || year === '') {
         return res.status(400).json({ message: 'Marka, model ve yıl alanları zorunludur.' });
+    }
+    const yearNum = parseInt(year, 10);
+    if (Number.isNaN(yearNum) || yearNum < 1900 || yearNum > 2100) {
+        return res.status(400).json({ message: 'Geçerli bir model yılı giriniz.' });
     }
     const connection = await db.getConnection();
     try {
@@ -372,8 +396,8 @@ app.post('/api/vehicles', authenticateToken, requireAdmin, upload.array('photos'
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const [result] = await connection.query(sql, [
-            brand, model, parseInt(year), color, gear, fuel, 
-            parseInt(mileage) || 0, 
+            brand, model, yearNum, color, gear, fuel, 
+            parseInt(mileage, 10) || 0, 
             parseFloat(purchase_price) || 0, 
             parseFloat(sale_price) || 0, 
             description,
@@ -395,7 +419,7 @@ app.post('/api/vehicles', authenticateToken, requireAdmin, upload.array('photos'
         console.error("❌ ARAÇ EKLEME SIRASINDA HATA:", err);
         res.status(500).json({ 
             message: 'Araç eklenemedi, sunucu hatası.',
-            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+            hint: err.code || err.message,
         });
     } finally {
         connection.release();
