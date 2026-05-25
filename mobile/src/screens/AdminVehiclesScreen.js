@@ -18,7 +18,11 @@ import api from '../api/axiosConfig';
 import { getImageUrl } from '../config';
 import VehicleFormModal from '../components/VehicleFormModal';
 import ScreenLayout from '../components/ScreenLayout';
-import { buildVehicleFormData, buildPhotosOnlyFormData } from '../utils/vehiclePhotos';
+import {
+  buildVehicleFormData,
+  uploadVehiclePhotosInBatches,
+  formatUploadError,
+} from '../utils/vehiclePhotos';
 
 const MAX_PHOTOS = 10;
 
@@ -145,7 +149,7 @@ const AdminVehiclesScreen = () => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         allowsMultipleSelection: slots > 1,
-        quality: 0.85,
+        quality: 0.55,
         selectionLimit: slots,
         ...(Platform.OS === 'android' ? { legacy: true } : {}),
       });
@@ -181,7 +185,7 @@ const AdminVehiclesScreen = () => {
       }
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ['images'],
-        quality: 0.85,
+        quality: 0.55,
       });
       if (!result.canceled && result.assets?.[0]) {
         addAssets([result.assets[0]]);
@@ -245,24 +249,24 @@ const AdminVehiclesScreen = () => {
       if (isEditing && editId) {
         await api.put(`/vehicles/${editId}`, payload);
         if (newPhotos.length > 0) {
-          const photoBody = buildPhotosOnlyFormData(newPhotos);
-          await api.post(`/vehicles/${editId}/add-photos`, photoBody, {
-            timeout: 60000,
-          });
+          await uploadVehiclePhotosInBatches(editId, newPhotos, api);
         }
         Alert.alert('Başarılı', 'Araç güncellendi.');
       } else {
-        const body = buildVehicleFormData(payload, newPhotos);
-        await api.post('/vehicles', body, {
+        const { data } = await api.post('/vehicles', buildVehicleFormData(payload, []), {
           timeout: 60000,
         });
+        const vehicleId = data?.vehicleId;
+        if (vehicleId && newPhotos.length > 0) {
+          await uploadVehiclePhotosInBatches(vehicleId, newPhotos, api);
+        }
         Alert.alert('Başarılı', 'Yeni araç eklendi.');
       }
       setFormVisible(false);
       resetPhotos();
       fetchVehicles();
     } catch (err) {
-      setFormError(err.response?.data?.message || 'Kayıt başarısız.');
+      setFormError(formatUploadError(err));
     } finally {
       setSaving(false);
     }

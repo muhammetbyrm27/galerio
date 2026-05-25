@@ -26,3 +26,31 @@ export const buildPhotosOnlyFormData = (photoAssets) => {
   appendPhotosToFormData(formData, photoAssets);
   return formData;
 };
+
+const PHOTO_BATCH_SIZE = 2;
+
+/**
+ * Çok fotoğraf tek istekte Render zaman aşımına düşmesin diye parça parça yükler.
+ */
+export async function uploadVehiclePhotosInBatches(vehicleId, assets, apiClient, batchSize = PHOTO_BATCH_SIZE) {
+  if (!assets?.length) return;
+
+  for (let i = 0; i < assets.length; i += batchSize) {
+    const chunk = assets.slice(i, i + batchSize);
+    const formData = buildPhotosOnlyFormData(chunk);
+    await apiClient.post(`/vehicles/${vehicleId}/add-photos`, formData, {
+      timeout: 120000,
+    });
+  }
+}
+
+export function formatUploadError(err) {
+  const data = err.response?.data;
+  const msg = data?.message || err.message || 'Kayıt başarısız.';
+  const hint = data?.hint;
+  if (hint) return `${msg} (${hint})`;
+  if (err.code === 'ECONNABORTED') {
+    return 'Yükleme zaman aşımına uğradı. Daha az fotoğraf veya daha küçük görseller deneyin.';
+  }
+  return msg;
+}

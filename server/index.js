@@ -145,6 +145,8 @@ const storage = multer.diskStorage({
     }
 });
 
+const MAX_PHOTOS_PER_VEHICLE = 10;
+
 const upload = multer({ 
     storage,
     fileFilter: (req, file, cb) => {
@@ -154,8 +156,31 @@ const upload = multer({
             cb(new Error('Sadece resim dosyaları yüklenebilir!'), false);
         }
     },
-    limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+    limits: {
+        fileSize: 8 * 1024 * 1024,
+        files: MAX_PHOTOS_PER_VEHICLE,
+    },
 });
+
+const runUpload = (uploadMiddleware) => (req, res, next) => {
+    uploadMiddleware(req, res, (err) => {
+        if (!err) return next();
+        if (err instanceof multer.MulterError) {
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({
+                    message: 'Bir fotoğraf çok büyük (en fazla 8MB). Daha küçük fotoğraf seçin.',
+                });
+            }
+            if (err.code === 'LIMIT_FILE_COUNT' || err.code === 'LIMIT_UNEXPECTED_FILE') {
+                return res.status(400).json({
+                    message: `Tek istekte en fazla ${MAX_PHOTOS_PER_VEHICLE} fotoğraf gönderilebilir.`,
+                });
+            }
+            return res.status(400).json({ message: err.message });
+        }
+        return res.status(400).json({ message: err.message || 'Dosya yüklenemedi.' });
+    });
+};
 
 // E-posta transporter - Render Free tier için sadece SendGrid Web API (HTTPS) kullanılabilir, klasik SMTP (Gmail) portları engellidir.
 const sendgridTransport = require('nodemailer-sendgrid-transport');
@@ -379,7 +404,7 @@ app.get('/api/vehicles/:id', async (req, res) => {
     }
 });
 
-app.post('/api/vehicles', authenticateToken, requireAdmin, upload.array('photos', 10), async (req, res) => {
+app.post('/api/vehicles', authenticateToken, requireAdmin, runUpload(upload.array('photos', MAX_PHOTOS_PER_VEHICLE)), async (req, res) => {
     const { brand, model, year, color, gear, fuel, mileage, purchase_price, sale_price, description } = req.body;
     if (!brand || !model || year === undefined || year === null || year === '') {
         return res.status(400).json({ message: 'Marka, model ve yıl alanları zorunludur.' });
@@ -454,19 +479,47 @@ app.put('/api/vehicles/:id', authenticateToken, requireAdmin, async (req, res) =
     }
 });
 
-app.post('/api/vehicles/:id/add-photos', authenticateToken, requireAdmin, upload.array('photos', 10), async (req, res) => {
+app.post('/api/vehicles/:id/add-photos', authenticateToken, requireAdmin, runUpload(upload.array('photos', MAX_PHOTOS_PER_VEHICLE)), async (req, res) => {
     try {
         const vehicleId = req.params.id;
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({ message: 'Yüklenecek fotoğraf seçilmedi.' });
         }
-        const photoValues = req.files.map(file => [vehicleId, file.path.replace(/\\/g, "/")]);
+
+        const [countRows] = await db.query(
+            'SELECT COUNT(*) AS total FROM vehicle_photos WHERE vehicle_id = ?',
+            [vehicleId]
+        );
+        const existing = countRows[0]?.total || 0;
+        const incoming = req.files.length;
+        if (existing + incoming > MAX_PHOTOS_PER_VEHICLE) {
+            req.files.forEach((file) => {
+                try {
+                    fs.unlinkSync(file.path);
+                } catch (_) { /* ignore */ }
+            });
+            return res.status(400).json({
+                message: `Bu araçta en fazla ${MAX_PHOTOS_PER_VEHICLE} fotoğraf olabilir. Mevcut: ${existing}, eklenmek istenen: ${incoming}.`,
+            });
+        }
+
+        const photoValues = req.files.map((file) => [
+            vehicleId,
+            file.path.replace(/\\/g, '/'),
+        ]);
         await db.query('INSERT INTO vehicle_photos (vehicle_id, photo_url) VALUES ?', [photoValues]);
         await invalidateVehiclesCache(vehicleId);
-        res.status(201).json({ message: 'Fotoğraflar başarıyla eklendi.' });
+        res.status(201).json({
+            message: 'Fotoğraflar başarıyla eklendi.',
+            added: incoming,
+            total: existing + incoming,
+        });
     } catch (err) {
         console.error("FOTOĞRAF EKLEME HATASI:", err);
-        res.status(500).json({ message: 'Fotoğraflar eklenirken bir hata oluştu.' });
+        res.status(500).json({
+            message: 'Fotoğraflar eklenirken bir hata oluştu.',
+            hint: err.code || err.message,
+        });
     }
 });
 
