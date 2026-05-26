@@ -1009,9 +1009,9 @@ io.on('connection', (socket) => {
 
                 // *** DÜZELTME: Sadece bu conversation'a ait mesajları getir ***
                 const sql = `
-                    SELECT m.*, sender.name as sender_name 
+                    SELECT m.*, COALESCE(sender.name, 'Kullanıcı') as sender_name 
                     FROM messages m 
-                    JOIN users sender ON m.sender_id = sender.id 
+                    LEFT JOIN users sender ON m.sender_id = sender.id 
                     WHERE m.conversation_id = ? 
                     ORDER BY m.created_at ASC
                 `;
