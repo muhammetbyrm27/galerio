@@ -26,7 +26,7 @@ async function main() {
   });
 
   const [admins] = await db.query(
-    'SELECT id, name, email FROM users WHERE role = "admin"'
+    "SELECT id, name, email FROM users WHERE role = 'admin'"
   );
 
   console.log('\n--- Mevcut admin hesapları ---');
@@ -43,13 +43,13 @@ async function main() {
 
   if (existing.length > 0) {
     await db.query(
-      'UPDATE users SET name = ?, password = ?, role = "admin" WHERE email = ?',
+      "UPDATE users SET name = ?, password = ?, role = 'admin' WHERE email = ?",
       [ADMIN_NAME, hash, ADMIN_EMAIL]
     );
     console.log(`\n✅ Güncellendi: ${ADMIN_EMAIL} (rol: admin, şifre sıfırlandı)`);
   } else {
     await db.query(
-      'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, "admin")',
+      "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, 'admin')",
       [ADMIN_NAME, ADMIN_EMAIL, hash]
     );
     console.log(`\n✅ Yeni admin oluşturuldu: ${ADMIN_EMAIL}`);
