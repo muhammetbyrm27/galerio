@@ -38,6 +38,8 @@ EXPO_PUBLIC_API_URL=http://BILGISAYAR_IP:5000
 | 2 | Redis | [docs/FAZ2-REDIS.md](docs/FAZ2-REDIS.md) |
 | 3 | RabbitMQ | [docs/FAZ3-RABBITMQ.md](docs/FAZ3-RABBITMQ.md) |
 | 4 | CI/CD | [docs/FAZ4-CICD.md](docs/FAZ4-CICD.md) |
+| — | Cloudinary (fotoğraf) | [docs/CLOUDINARY.md](docs/CLOUDINARY.md) |
+| — | Mobil mağaza / APK | [docs/MOBIL-UYGULAMA-YAYIN.md](docs/MOBIL-UYGULAMA-YAYIN.md) |
 
 ## CI/CD
 

@@ -30,12 +30,17 @@ const {
 } = require('./lib/inbox');
 const { ensureMessagesSchema, ADMIN_CONV_REGEXP, adminConversationFilterSql } = require('./lib/messagesSchema');
 const {
-    toPublicUploadPath,
-    resolveUploadFilePath,
     normalizeVehicleRow,
     normalizeVehiclesList,
     migratePhotoUrlsInDb,
 } = require('./lib/uploadPaths');
+const {
+    ensurePhotoStorage,
+    useCloudinary,
+    createMulterStorage,
+    saveUploadedPhotos,
+    removeStoredPhoto,
+} = require('./lib/photoStorage');
 const {
     connectRabbitMQ,
     pingRabbitMQ,
@@ -104,6 +109,7 @@ app.get('/api/health', async (req, res) => {
         res.json({
             status: 'ok',
             database: 'connected',
+            photoStorage: useCloudinary() ? 'cloudinary' : 'local',
             redis: redisConfigured
                 ? redisConnected
                     ? 'connected'
@@ -145,18 +151,12 @@ const requireAdmin = (req, res, next) => {
     next();
 };
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, uploadsDir),
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
-});
+ensurePhotoStorage();
 
 const MAX_PHOTOS_PER_VEHICLE = 10;
 
 const upload = multer({ 
-    storage,
+    storage: createMulterStorage(uploadsDir, multer),
     fileFilter: (req, file, cb) => {
         if (file.mimetype.startsWith('image/')) {
             cb(null, true);
@@ -441,7 +441,8 @@ app.post('/api/vehicles', authenticateToken, requireAdmin, runUpload(upload.arra
         ]);
         const vehicleId = result.insertId;
         if (req.files && req.files.length > 0) {
-            const photoValues = req.files.map((file) => [vehicleId, toPublicUploadPath(file)]);
+            const photoUrls = await saveUploadedPhotos(req.files);
+            const photoValues = photoUrls.map((url) => [vehicleId, url]);
             await connection.query('INSERT INTO vehicle_photos (vehicle_id, photo_url) VALUES ?', [photoValues]);
         }
         await connection.commit();
@@ -514,7 +515,8 @@ app.post('/api/vehicles/:id/add-photos', authenticateToken, requireAdmin, runUpl
             });
         }
 
-        const photoValues = req.files.map((file) => [vehicleId, toPublicUploadPath(file)]);
+        const photoUrls = await saveUploadedPhotos(req.files);
+        const photoValues = photoUrls.map((url) => [vehicleId, url]);
         await db.query('INSERT INTO vehicle_photos (vehicle_id, photo_url) VALUES ?', [photoValues]);
         await invalidateVehiclesCache(vehicleId);
         res.status(201).json({
@@ -544,10 +546,7 @@ app.delete('/api/photos/:id', authenticateToken, requireAdmin, async (req, res) 
         const photoPath = photoResults[0].photo_url;
         const vehicleId = photoResults[0].vehicle_id;
         await db.query('DELETE FROM vehicle_photos WHERE id = ?', [photoId]);
-        const fullPath = resolveUploadFilePath(photoPath);
-        fs.unlink(fullPath, (err) => {
-            if (err && err.code !== 'ENOENT') console.error('Dosya silme hatası:', err);
-        });
+        await removeStoredPhoto(photoPath);
         await invalidateVehiclesCache(vehicleId);
         res.status(200).json({ message: 'Fotoğraf başarıyla silindi.' });
     } catch (err) {
@@ -566,13 +565,9 @@ app.delete('/api/vehicles/:id', authenticateToken, requireAdmin, async (req, res
         await connection.query('DELETE FROM messages WHERE vehicle_id = ?', [vehicleId]);
         const [deleteResult] = await connection.query('DELETE FROM vehicles WHERE id = ?', [vehicleId]);
         if (deleteResult.affectedRows === 0) throw new Error('Araç bulunamadı');
-        photos.forEach((photo) => {
-            const fullPath = resolveUploadFilePath(photo.photo_url);
-            if (!fullPath) return;
-            fs.unlink(fullPath, (err) => {
-                if (err && err.code !== 'ENOENT') console.error('Dosya silme hatası:', err);
-            });
-        });
+        for (const photo of photos) {
+            await removeStoredPhoto(photo.photo_url);
+        }
         await connection.commit();
         await invalidateVehiclesCache(vehicleId);
         res.json({ message: 'Araç ve ilgili tüm veriler başarıyla silindi' });

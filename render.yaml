@@ -15,4 +15,5 @@ services:
       - key: CLIENT_URL
         value: "*"
       # Render Dashboard'da tanımlayın: DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, JWT_SECRET
+      # Fotoğraflar için (önerilir): CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
       # İsteğe bağlı: REDIS_URL, RABBITMQ_URL (yoksa API yedek modda çalışır)

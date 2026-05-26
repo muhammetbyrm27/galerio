@@ -3,12 +3,14 @@
     "name": "Galerio",
     "slug": "galerio",
     "version": "1.0.0",
+    "description": "Galerio — araç galerisi yönetimi ve müşteri mesajlaşması",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "mobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "bundleIdentifier": "com.galerio.app",
       "supportsTablet": true,
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Araç ilan fotoğrafları için galeriye erişim gerekir.",
@@ -16,6 +18,7 @@
       }
     },
     "android": {
+      "package": "com.galerio.app",
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_MEDIA_IMAGES",
