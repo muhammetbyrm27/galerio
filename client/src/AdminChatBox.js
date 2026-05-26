@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { jwtDecode } from 'jwt-decode';
+import axios from 'axios';
+import API_URL from './config';
 import './AdminChatBox.css';
 import { socket } from './socket';
 
@@ -143,6 +145,18 @@ function AdminChatBox({ conversationId }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm('Mesajı silmek istediğinizden emin misiniz?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/api/messages/${messageId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch (error) {
+      alert(error.response?.data?.message || 'Mesaj silinemedi.');
+    }
+  };
+
   const handleSendMessage = (e) => {
     e.preventDefault();
     const trimmedMessage = newMessage.trim();
@@ -219,12 +233,20 @@ function AdminChatBox({ conversationId }) {
           ) : (
               messages.map((msg) => {
                 const isAdminMessage = parseInt(msg.sender_id) === adminUser?.id;
+                const ts = msg.created_at;
+                const timeStr = new Date(ts && ts.endsWith('Z') ? ts : ts + 'Z').toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
                 return (
                     <div key={msg.id} className={`message-container ${isAdminMessage ? 'admin-message' : 'user-message'}`}>
                       <div className={`message-bubble ${isAdminMessage ? 'admin-bubble' : 'user-bubble'}`}>
-
+                        {isAdminMessage && (
+                          <button
+                            className="delete-message-btn"
+                            onClick={() => handleDeleteMessage(msg.id)}
+                            title="Mesajı Sil"
+                          >×</button>
+                        )}
                         <p>{msg.message}</p>
-                        <span className="message-time">{new Date(msg.created_at.endsWith('Z') ? msg.created_at : msg.created_at + 'Z').toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span className="message-time">{timeStr}</span>
                       </div>
                     </div>
                 );
