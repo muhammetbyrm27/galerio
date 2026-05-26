@@ -231,10 +231,10 @@ function ChatModal({ vehicle, closeModal }) {
                   const isSentByUser = currentUser ? parseInt(msg.sender_id) === currentUser.id : false;
                   return (
                       <div key={msg.id} className={`message-wrapper ${isSentByUser ? 'sent' : 'received'}`}>
+                        {isSentByUser && (
+                          <button className="delete-message-btn" onClick={() => handleDeleteMessage(msg.id)} title="Mesajı Sil">×</button>
+                        )}
                         <div className="message-bubble">
-                          {isSentByUser && (
-                              <button className="delete-message-btn" onClick={() => handleDeleteMessage(msg.id)} title="Mesajı Sil">×</button>
-                          )}
                           <p>{msg.message}</p>
                           <span className="message-time">{new Date(msg.created_at.endsWith('Z') ? msg.created_at : msg.created_at + 'Z').toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>

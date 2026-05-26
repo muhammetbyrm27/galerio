@@ -237,14 +237,14 @@ function AdminChatBox({ conversationId }) {
                 const timeStr = new Date(ts && ts.endsWith('Z') ? ts : ts + 'Z').toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
                 return (
                     <div key={msg.id} className={`message-container ${isAdminMessage ? 'admin-message' : 'user-message'}`}>
+                      {isAdminMessage && (
+                        <button
+                          className="delete-message-btn"
+                          onClick={() => handleDeleteMessage(msg.id)}
+                          title="Mesajı Sil"
+                        >×</button>
+                      )}
                       <div className={`message-bubble ${isAdminMessage ? 'admin-bubble' : 'user-bubble'}`}>
-                        {isAdminMessage && (
-                          <button
-                            className="delete-message-btn"
-                            onClick={() => handleDeleteMessage(msg.id)}
-                            title="Mesajı Sil"
-                          >×</button>
-                        )}
                         <p>{msg.message}</p>
                         <span className="message-time">{timeStr}</span>
                       </div>
