@@ -1,9 +1,39 @@
-# Galerio yedeğini Aiven MySQL'e aktarır (Workbench gerekmez)
+# Galerio / xsmd SQL yedeğini Aiven MySQL'e aktarır (Aiven uyumlu temizlik)
 # Kullanım: .\scripts\import-aiven.ps1
+#          .\scripts\import-aiven.ps1 -DumpFile .\xsmd-canli.sql
+
+param(
+  [string]$DumpFile = ""
+)
 
 $mysql = "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"
-$dump  = (Join-Path $PSScriptRoot "..\galerio-yedek.sql" | Resolve-Path).Path
 $ca    = Join-Path $PSScriptRoot "..\aiven-ca.pem"
+
+function Get-SanitizedDumpPath {
+  param([string]$SourcePath)
+  $temp = Join-Path $env:TEMP ("galerio-aiven-import-{0}.sql" -f [guid]::NewGuid().ToString("N"))
+  $skip = @(
+    '^\s*SET\s+@MYSQLDUMP_TEMP_LOG_BIN',
+    '^\s*SET\s+@@SESSION\.SQL_LOG_BIN',
+    '^\s*SET\s+@@GLOBAL\.GTID_PURGED',
+    '^\s*SET\s+@@SESSION\.SQL_LOG_BIN',
+    '^\s*SET\s+GLOBAL\.GTID_PURGED',
+    '^\s*USE\s+`mysql`',
+    '^\s*CREATE\s+DATABASE\b',
+    '^\s*DROP\s+DATABASE\b'
+  )
+  $count = 0
+  Get-Content -Path $SourcePath -Encoding UTF8 | ForEach-Object {
+    $line = $_
+    $drop = $false
+    foreach ($pat in $skip) {
+      if ($line -match $pat) { $drop = $true; $count++; break }
+    }
+    if (-not $drop) { $line }
+  } | Set-Content -Path $temp -Encoding UTF8
+  Write-Host "Aiven uyumlu dump: $temp ($count satir atlandi)" -ForegroundColor DarkGray
+  return $temp
+}
 
 function Invoke-MySql {
   param(
@@ -19,11 +49,8 @@ function Invoke-MySql {
       "-u", $script:user,
       "--default-character-set=utf8mb4"
     ) + $script:sslArgs
-    if ($Database) {
-      $argList += @("-D", $Database)
-    }
+    if ($Database) { $argList += @("-D", $Database) }
     $argList += $ExtraArgs
-
     $out = & $mysql @argList 2>&1
     $code = $LASTEXITCODE
     foreach ($line in @($out)) {
@@ -45,12 +72,29 @@ if (-not (Test-Path $mysql)) {
   Write-Host "mysql.exe bulunamadi." -ForegroundColor Red
   exit 1
 }
-if (-not (Test-Path $dump)) {
-  Write-Host "galerio-yedek.sql bulunamadi." -ForegroundColor Red
+
+if ([string]::IsNullOrWhiteSpace($DumpFile)) {
+  $defaultDump = Join-Path $PSScriptRoot "..\xsmd-canli.sql"
+  if (Test-Path $defaultDump) {
+    $DumpFile = (Resolve-Path $defaultDump).Path
+  } else {
+    $DumpFile = (Resolve-Path (Join-Path $PSScriptRoot "..\galerio-yedek.sql")).Path
+  }
+} elseif (Test-Path $DumpFile) {
+  $DumpFile = (Resolve-Path $DumpFile).Path
+} else {
+  Write-Host "Dump bulunamadi: $DumpFile" -ForegroundColor Red
   exit 1
 }
 
+$size = (Get-Item $DumpFile).Length
+if ($size -lt 5000) {
+  Write-Host "UYARI: Dump cok kucuk ($size byte). Tablo verisi yok olabilir." -ForegroundColor Yellow
+  Write-Host "Export'u Render galerio-xsmd DB bilgileriyle yapin (Aiven host DEGIL)." -ForegroundColor Yellow
+}
+
 Write-Host ""
+Write-Host "Dump: $DumpFile ($size byte)" -ForegroundColor Cyan
 Write-Host "Aiven -> Overview -> Connection information" -ForegroundColor Cyan
 $script:hostName = Read-Host "Host"
 $script:port = Read-Host "Port"
@@ -75,16 +119,18 @@ Write-Host ""
 Write-Host "Baglanti test ediliyor..." -ForegroundColor Cyan
 $testCode = Invoke-MySql -ExtraArgs @("-e", "SELECT 1 AS ok;")
 if ($testCode -ne 0) {
-  Write-Host "Baglanti basarisiz (kod $testCode)." -ForegroundColor Red
+  Write-Host "Baglanti basarisiz." -ForegroundColor Red
   Remove-Item Env:MYSQL_PWD -ErrorAction SilentlyContinue
   exit 1
 }
 
-$dumpMysql = ($dump -replace '\\', '/')
+$sanitized = Get-SanitizedDumpPath -SourcePath $DumpFile
+$dumpMysql = ($sanitized -replace '\\', '/')
+
 Write-Host "Import basliyor -> $dbName ..." -ForegroundColor Cyan
-Write-Host "Dosya: $dumpMysql" -ForegroundColor DarkGray
 $importCode = Invoke-MySql -Database $dbName -ExtraArgs @("-e", "source $dumpMysql;")
 
+Remove-Item $sanitized -ErrorAction SilentlyContinue
 Remove-Item Env:MYSQL_PWD -ErrorAction SilentlyContinue
 
 if ($importCode -ne 0) {
@@ -99,4 +145,4 @@ Invoke-MySql -Database $dbName -ExtraArgs @("-e", "SHOW TABLES;")
 Remove-Item Env:MYSQL_PWD -ErrorAction SilentlyContinue
 $script:dbPassword = $null
 Write-Host ""
-Write-Host "Render: DB_NAME=$dbName , DB_SSL=true" -ForegroundColor Green
+Write-Host "Kontrol: https://bayramlarauto.onrender.com/api/vehicles" -ForegroundColor Green

@@ -19,3 +19,4 @@ server/uploads/*
 
 # Yerel MySQL yedeği (şifre / kullanıcı verisi içerir)
 galerio-yedek.sql
+xsmd-canli.sql
