@@ -236,7 +236,7 @@ function ChatModal({ vehicle, closeModal }) {
                               <button className="delete-message-btn" onClick={() => handleDeleteMessage(msg.id)} title="Mesajı Sil">×</button>
                           )}
                           <p>{msg.message}</p>
-                          <span className="message-time">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          <span className="message-time">{new Date(msg.created_at.endsWith('Z') ? msg.created_at : msg.created_at + 'Z').toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                       </div>
                   );

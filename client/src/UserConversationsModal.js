@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import API_URL from './config';
-import { jwtDecode } from 'jwt-decode'; // EKLE
-import { socket } from './socket'; // EKLE
-import './UserConversationsModal.css'; // Bu CSS dosyasına da ekleme yapacağız
+import API_URL, { getImageUrl } from './config';
+import { jwtDecode } from 'jwt-decode';
+import { socket } from './socket';
+import './UserConversationsModal.css';
 
 function UserConversationsModal({ closeModal, openChatForVehicle }) {
     const [conversations, setConversations] = useState([]);
@@ -151,37 +151,49 @@ function UserConversationsModal({ closeModal, openChatForVehicle }) {
                         </div>
                     ) : (
                         <div className="conversations-list-container">
-                            {conversations.map(convo => (
-                                <div 
-                                    key={convo.conversation_id} 
-                                    className="conversation-summary-item" 
-                                    // ===> GÜNCELLEME: Sil butonu dışındaki alana tıklanmasını sağlıyoruz
+                            {conversations.map(convo => {
+                                const ts = convo.created_at;
+                                const date = new Date(ts && ts.endsWith('Z') ? ts : ts + 'Z');
+                                const dateStr = date.toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                                const price = convo.sale_price
+                                    ? parseFloat(convo.sale_price).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 0, maximumFractionDigits: 0 })
+                                    : null;
+                                return (
+                                <div
+                                    key={convo.conversation_id}
+                                    className={`conversation-summary-item${convo.unread_count > 0 ? ' unread' : ''}`}
                                     onClick={() => handleConversationClick(convo.vehicle_id, convo.conversation_id)}
                                 >
+                                    <div className="convo-photo-wrap">
+                                        {convo.photo_url ? (
+                                            <img src={getImageUrl(convo.photo_url)} alt={`${convo.brand} ${convo.model}`} className="convo-photo" />
+                                        ) : (
+                                            <div className="convo-photo-placeholder">🚗</div>
+                                        )}
+                                    </div>
                                     <div className="conversation-text">
                                         <span className="convo-vehicle-title">{convo.brand} {convo.model}</span>
+                                        <span className="convo-vehicle-specs">
+                                            {convo.year}{convo.mileage ? ` • ${Number(convo.mileage).toLocaleString('tr-TR')} km` : ''}{convo.fuel ? ` • ${convo.fuel}` : ''}{convo.gear ? ` • ${convo.gear}` : ''}
+                                        </span>
+                                        {price && <span className="convo-price">{price}</span>}
                                         <p className="convo-last-message">"{convo.message}"</p>
                                     </div>
                                     <div className="conversation-meta">
-                                        <span className="convo-timestamp">
-                                            {new Date(convo.created_at).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                                        </span>
+                                        <span className="convo-timestamp">{dateStr}</span>
                                         {convo.unread_count > 0 && (
-                                            <span className="convo-unread-badge" title={`${convo.unread_count} yeni mesaj`}>
-                                                {convo.unread_count}
-                                            </span>
+                                            <span className="convo-unread-badge">{convo.unread_count}</span>
                                         )}
+                                        <button
+                                            type="button"
+                                            className="delete-convo-btn"
+                                            title="Gelen kutusundan kaldır"
+                                            onClick={(e) => handleRemoveFromInbox(e, convo.conversation_id)}
+                                        >🗑️</button>
                                     </div>
-                                    <button
-                                        type="button"
-                                        className="delete-convo-btn"
-                                        title="Gelen kutusundan kaldır"
-                                        onClick={(e) => handleRemoveFromInbox(e, convo.conversation_id)}
-                                    >
-                                        🗑️
-                                    </button>
                                 </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </main>

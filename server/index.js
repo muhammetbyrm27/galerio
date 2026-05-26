@@ -729,6 +729,7 @@ app.get('/api/user-conversations', authenticateToken, async (req, res) => {
                 v.gear,
                 v.fuel,
                 v.sale_price,
+                (SELECT vp.photo_url FROM vehicle_photos vp WHERE vp.vehicle_id = v.id ORDER BY vp.id ASC LIMIT 1) AS photo_url,
                 admin.name as admin_name,
                 (SELECT COUNT(*) FROM messages m2
                  WHERE m2.conversation_id = m.conversation_id
