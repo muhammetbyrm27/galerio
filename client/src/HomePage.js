@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import API_URL from './config';
+import API_URL, { getImageUrl } from './config';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import './HomePage.css'; 
@@ -175,7 +175,7 @@ function HomePage() {
           <div key={vehicle.id} className="vehicle-card-item" onClick={() => openDetailsModal(vehicle.id)}>
             <div className="card-image-container">
               <img 
-                src={vehicle.photo_url ? `${API_URL}/${vehicle.photo_url}` : 'https://via.placeholder.com/400x300?text=Resim+Yok'} 
+                src={getImageUrl(vehicle.photo_url) || 'https://via.placeholder.com/400x300?text=Resim+Yok'} 
                 alt={`${vehicle.brand} ${vehicle.model}`}
               />
             </div>
@@ -240,7 +240,7 @@ function VehicleDetailModal({ vehicle, closeModal, openChat }) {
             {vehicle.photos && vehicle.photos.length > 0 ? (
               <div className="image-gallery">
                 <div className="main-image-container">
-                  <img src={`${API_URL}/${vehicle.photos[currentImageIndex].photo_url}`} alt="Ana Araç" className="main-image" />
+                  <img src={getImageUrl(vehicle.photos[currentImageIndex].photo_url)} alt="Ana Araç" className="main-image" />
                   {vehicle.photos.length > 1 && (
                     <>
                       <button className="image-nav-btn prev" onClick={prevImage}>‹</button>
@@ -251,7 +251,7 @@ function VehicleDetailModal({ vehicle, closeModal, openChat }) {
                 {vehicle.photos.length > 1 && (
                   <div className="thumbnail-container">
                     {vehicle.photos.map((photo, index) => (
-                      <img key={photo.id} src={`${API_URL}/${photo.photo_url}`} alt={`Thumbnail ${index + 1}`}
+                      <img key={photo.id} src={getImageUrl(photo.photo_url)} alt={`Thumbnail ${index + 1}`}
                            className={`thumbnail ${index === currentImageIndex ? 'active' : ''}`}
                            onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(index); }} />
                     ))}

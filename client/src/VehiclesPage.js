@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import API_URL from './config';
+import API_URL, { getImageUrl } from './config';
 import './VehiclesPage.css';
 
 function VehiclesPage() {
@@ -447,7 +447,7 @@ function VehiclesPage() {
                   {currentVehicle.photos.map(photo => (
                     <div key={photo.id} className="photo-item">
                       <img 
-                        src={`${API_URL}/${photo.photo_url}`} 
+                        src={getImageUrl(photo.photo_url)} 
                         alt="Araç"
                         onError={(e) => {
                           console.error(`Fotoğraf yüklenemedi: ${photo.photo_url}`);
@@ -542,7 +542,7 @@ function VehiclesPage() {
                       <td className="photo-cell">
                         {vehicle.photo_url ? (
                           <img 
-                            src={`${API_URL}/${vehicle.photo_url}`}
+                            src={getImageUrl(vehicle.photo_url)}
                             alt={`${vehicle.brand} ${vehicle.model}`}
                             className="vehicle-thumbnail"
                             style={{ 

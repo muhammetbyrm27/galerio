@@ -30,6 +30,13 @@ const {
 } = require('./lib/inbox');
 const { ensureMessagesSchema, ADMIN_CONV_REGEXP, adminConversationFilterSql } = require('./lib/messagesSchema');
 const {
+    toPublicUploadPath,
+    resolveUploadFilePath,
+    normalizeVehicleRow,
+    normalizeVehiclesList,
+    migratePhotoUrlsInDb,
+} = require('./lib/uploadPaths');
+const {
     connectRabbitMQ,
     pingRabbitMQ,
     isRabbitConfigured,
@@ -362,7 +369,7 @@ app.get('/api/vehicles', async (req, res) => {
         const cached = await getCache(cacheKey);
         if (cached) {
             res.set('X-Cache', 'HIT');
-            return res.json(cached);
+            return res.json(normalizeVehiclesList(cached));
         }
 
         const sql = `
@@ -371,9 +378,10 @@ app.get('/api/vehicles', async (req, res) => {
             FROM vehicles v ORDER BY created_at DESC
         `;
         const [vehicles] = await db.query(sql);
-        await setCache(cacheKey, vehicles);
+        const normalized = normalizeVehiclesList(vehicles);
+        await setCache(cacheKey, normalized);
         res.set('X-Cache', isRedisReady() ? 'MISS' : 'BYPASS');
-        res.json(vehicles);
+        res.json(normalized);
     } catch (err) {
         console.error("Araçlar alınırken hata:", err);
         res.status(500).json({ message: 'Sunucu hatası: Araçlar alınamadı.' });
@@ -387,15 +395,17 @@ app.get('/api/vehicles/:id', async (req, res) => {
         const cached = await getCache(cacheKey);
         if (cached) {
             res.set('X-Cache', 'HIT');
-            return res.json(cached);
+            return res.json(normalizeVehicleRow(cached));
         }
 
         const [vehicleResults] = await db.query('SELECT * FROM vehicles WHERE id = ?', [vehicleId]);
         if (vehicleResults.length === 0) return res.status(404).json({ message: 'Araç bulunamadı' });
         
         const [photoResults] = await db.query('SELECT * FROM vehicle_photos WHERE vehicle_id = ? ORDER BY id ASC', [vehicleId]);
-        const vehicle = vehicleResults[0];
-        vehicle.photos = photoResults;
+        const vehicle = normalizeVehicleRow({
+            ...vehicleResults[0],
+            photos: photoResults,
+        });
         await setCache(cacheKey, vehicle);
         res.set('X-Cache', isRedisReady() ? 'MISS' : 'BYPASS');
         res.json(vehicle);
@@ -431,7 +441,7 @@ app.post('/api/vehicles', authenticateToken, requireAdmin, runUpload(upload.arra
         ]);
         const vehicleId = result.insertId;
         if (req.files && req.files.length > 0) {
-            const photoValues = req.files.map(file => [vehicleId, file.path.replace(/\\/g, "/")]);
+            const photoValues = req.files.map((file) => [vehicleId, toPublicUploadPath(file)]);
             await connection.query('INSERT INTO vehicle_photos (vehicle_id, photo_url) VALUES ?', [photoValues]);
         }
         await connection.commit();
@@ -504,10 +514,7 @@ app.post('/api/vehicles/:id/add-photos', authenticateToken, requireAdmin, runUpl
             });
         }
 
-        const photoValues = req.files.map((file) => [
-            vehicleId,
-            file.path.replace(/\\/g, '/'),
-        ]);
+        const photoValues = req.files.map((file) => [vehicleId, toPublicUploadPath(file)]);
         await db.query('INSERT INTO vehicle_photos (vehicle_id, photo_url) VALUES ?', [photoValues]);
         await invalidateVehiclesCache(vehicleId);
         res.status(201).json({
@@ -537,7 +544,7 @@ app.delete('/api/photos/:id', authenticateToken, requireAdmin, async (req, res) 
         const photoPath = photoResults[0].photo_url;
         const vehicleId = photoResults[0].vehicle_id;
         await db.query('DELETE FROM vehicle_photos WHERE id = ?', [photoId]);
-        const fullPath = path.join(__dirname, photoPath);
+        const fullPath = resolveUploadFilePath(photoPath);
         fs.unlink(fullPath, (err) => {
             if (err && err.code !== 'ENOENT') console.error('Dosya silme hatası:', err);
         });
@@ -559,8 +566,9 @@ app.delete('/api/vehicles/:id', authenticateToken, requireAdmin, async (req, res
         await connection.query('DELETE FROM messages WHERE vehicle_id = ?', [vehicleId]);
         const [deleteResult] = await connection.query('DELETE FROM vehicles WHERE id = ?', [vehicleId]);
         if (deleteResult.affectedRows === 0) throw new Error('Araç bulunamadı');
-        photos.forEach(photo => {
-            const fullPath = path.join(__dirname, photo.photo_url);
+        photos.forEach((photo) => {
+            const fullPath = resolveUploadFilePath(photo.photo_url);
+            if (!fullPath) return;
             fs.unlink(fullPath, (err) => {
                 if (err && err.code !== 'ENOENT') console.error('Dosya silme hatası:', err);
             });
@@ -1264,8 +1272,10 @@ console.log('⏰ Otomatik mesaj temizleme görevi, her gün gece yarısı 30 gü
 
 const PORT = process.env.PORT || 5000;
 Promise.all([ensureHiddenInboxTable(), ensureMessagesSchema()])
-    .then(() => console.log('✅ Gelen kutusu ve mesaj şeması hazır.'))
-    .catch((err) => console.error('❌ Mesaj/gelen kutusu şeması hazırlanamadı:', err));
+    .then(() => migratePhotoUrlsInDb(db))
+    .then(() => invalidateVehiclesCache())
+    .then(() => console.log('✅ Gelen kutusu, mesaj şeması ve fotoğraf yolları hazır.'))
+    .catch((err) => console.error('❌ Başlangıç şeması/migrasyon hatası:', err));
 
 connectRedis()
     .then(() => initSocketBridge())
