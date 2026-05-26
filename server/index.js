@@ -262,7 +262,7 @@ app.post('/api/login', async (req, res) => {
 app.get('/api/admin-user', authenticateToken, async (req, res) => {
     try {
         const [admins] = await db.query(
-            'SELECT id, name FROM users WHERE role = "admin" ORDER BY id ASC LIMIT 1'
+            "SELECT id, name FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1"
         );
         if (admins.length === 0) {
             return res.status(404).json({ message: 'Admin kullanıcı bulunamadı.' });
