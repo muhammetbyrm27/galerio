@@ -36,9 +36,9 @@ function AdminChatBox({ conversationId }) {
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    // *** GÜVENLİK KONTROLÜ: Admin sadece kendi conversation'larına erişebilir ***
-    if (!conversationId.includes(`_admin_${adminUser.id}`)) {
-      console.error(`🚨 GÜVENLİK İHLALİ: Admin ${adminUser.id} başkasının conversation'ına erişmeye çalıştı: ${conversationId}`);
+    // Conversation formatını doğrula (user_X_vehicle_Y_admin_Z)
+    if (!/^user_\d+_vehicle_\d+_admin_\d+$/.test(conversationId)) {
+      console.error(`🚨 Geçersiz conversation formatı: ${conversationId}`);
       return;
     }
 
@@ -224,7 +224,7 @@ function AdminChatBox({ conversationId }) {
                       <div className={`message-bubble ${isAdminMessage ? 'admin-bubble' : 'user-bubble'}`}>
 
                         <p>{msg.message}</p>
-                        <span className="message-time">{new Date(msg.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span className="message-time">{new Date(msg.created_at.endsWith('Z') ? msg.created_at : msg.created_at + 'Z').toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
                     </div>
                 );

@@ -205,7 +205,7 @@ function MessagesPage() {
                         {convo.user_name || 'Bilinmeyen Kullanıcı'}
                       </h4>
                       <span className="conversation-time">
-                        {new Date(convo.created_at).toLocaleString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(convo.created_at && convo.created_at.endsWith('Z') ? convo.created_at : convo.created_at + 'Z').toLocaleString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                     <div className="vehicle-info">
