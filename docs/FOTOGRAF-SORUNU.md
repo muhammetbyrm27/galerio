@@ -1,25 +1,29 @@
-# Fotoğraf görünmüyor — tek sayfalık özet
+# Fotoğraf sorunu — kök neden ve çözüm
 
-## Canlı adresleriniz
+## Kök neden
 
-| Ne | URL |
-|----|-----|
-| Web | https://galerio-pink.vercel.app |
-| API (Vercel bunu kullanıyor) | **https://galerio-xsmd.onrender.com** |
-| Diğer Render servisi (web bunu KULLANMIYOR) | bayramlarauto.onrender.com |
+1. **İki Render API** vardı: `galerio-xsmd` (site buraya bağlı) ve `bayramlarauto` (Aiven + Cloudinary burada).
+2. Fotoğraflar **Render diskine** (`/uploads/...`) yazıldı → deploy sonrası silinir.
+3. **Cloudinary** yalnızca `bayramlarauto` ortamında açık; site `galerio-xsmd` kullanınca fotoğraflar xsmd diskine gitti.
 
-## Kök neden (2 madde)
+## Kalıcı çözüm
 
-1. **Dosyalar sunucu diskindeydi** — Render her deploy’da `uploads/` siler → URL var, dosya **404**.
-2. **Cloudinary yanlış servise kuruldu** — env’ler `bayramlarauto`’da; site `galerio-xsmd`’ye bağlı.
+Tek API: **https://bayramlarauto.onrender.com**
 
-## Çözüm (4 adım)
+1. Güncel araç verisini xsmd DB’den Aiven’e taşıyın → `docs/CANLI-SISTEM-OZET.md` bölüm **A**
+2. Vercel `REACT_APP_API_URL` → bayramlarauto → Redeploy
+3. Admin’den fotoğrafları yeniden yükleyin
+4. URL: `https://res.cloudinary.com/...`
 
-1. Render → **galerio-xsmd** servisi (bayramlarauto değil).
-2. Environment → Cloudinary 3 değişken + mevcut DB/JWT aynen kalsın.
-3. Manual Deploy → commit `8f45bfb` (Cloudinary kodu).
-4. Admin → araç fotoğraflarını **yeniden yükle** (bir kez).
+## Kontrol
 
-Kontrol: `https://galerio-xsmd.onrender.com/api/health` → `"photoStorage": "cloudinary"`
+```text
+GET https://bayramlarauto.onrender.com/api/health
+→ "database": "connected", "photoStorage": "cloudinary"
+```
 
-Yeni fotoğraf URL’leri `https://res.cloudinary.com/...` ile başlar.
+Tarayıcıda fotoğrafa sağ tık → **res.cloudinary.com** olmalı.
+
+## Yanlış (hâlâ görüyorsanız)
+
+`https://galerio-xsmd.onrender.com/uploads/...` → Vercel hâlâ xsmd veya eski build; bkz. `docs/CANLI-SISTEM-OZET.md`

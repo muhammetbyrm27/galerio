@@ -14,7 +14,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://galerio-xsmd.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://bayramlarauto.onrender.com"
       }
     },
     "production": {
@@ -23,7 +23,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://galerio-xsmd.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://bayramlarauto.onrender.com"
       }
     }
   },

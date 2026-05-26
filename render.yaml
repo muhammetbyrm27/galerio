@@ -1,5 +1,5 @@
-# Render Blueprint — mevcut servisi güncellemek için repo kökünde
-# https://galerio-xsmd.onrender.com
+# Render Blueprint — canli API: bayramlarauto.onrender.com
+# Eski servis galerio-xsmd kullanilmamali (docs/CANLI-SISTEM-OZET.md)
 
 services:
   - type: web

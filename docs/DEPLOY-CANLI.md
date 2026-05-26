@@ -1,68 +1,64 @@
-# Canlı ortam (web ile aynı mimari)
+# Canlı ortam — tek kaynak
 
-| Bileşen | Platform | URL |
-|---------|----------|-----|
-| **API** | Render | https://galerio-xsmd.onrender.com |
-| **Web** | Vercel | (Vercel proje URL’niz) |
-| **Mobil** | Expo | API = Render URL |
+## Mimari
 
-## 1. GitHub’a gönder (otomatik deploy tetikler)
+| Katman | Adres |
+|--------|--------|
+| **Web** | https://galerio-pi.vercel.app |
+| **API** | https://bayramlarauto.onrender.com |
+| **MySQL** | Aiven (`defaultdb` veya `galerio`) |
+| **Fotoğraf** | Cloudinary |
 
-```powershell
-cd "c:\Users\Muhammet\Desktop\galerio-app - Kopya"
-git add .
-git commit -m "feat: mobil, Docker, Redis, RabbitMQ, CI ve Render start script"
-git push origin main
+**Kullanmayın:** `galerio-xsmd.onrender.com` (eski servis; veri taşınana kadar sadece dump için)
+
+Detaylı analiz: `docs/CANLI-SISTEM-OZET.md`
+
+---
+
+## Render (bayramlarauto)
+
+**Environment** (zorunlu):
+
+```env
+DB_HOST=<aiven-host>
+DB_PORT=<aiven-port>
+DB_USER=avnadmin
+DB_PASSWORD=<aiven-password>
+DB_NAME=defaultdb
+DB_SSL=true
+
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+
+JWT_SECRET=...
+CLIENT_URL=*
 ```
 
-Render ve Vercel, bağlı repoda **auto-deploy** açıksa birkaç dakika içinde güncellenir.
+Sağlık: https://bayramlarauto.onrender.com/api/health
 
-## 2. Render (API) kontrol
+---
 
-Dashboard → servis → **Environment**:
+## Vercel
 
-| Değişken | Zorunlu |
-|----------|---------|
-| `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Evet |
-| `JWT_SECRET` | Evet |
-| `DB_SSL` | `true` (Render MySQL) |
-| `CLIENT_URL` | `*` veya Vercel domain |
-| `REDIS_URL` | Hayır (yoksa cache kapalı) |
-| `RABBITMQ_URL` | Hayır (yoksa mesaj API içinde işlenir) |
-
-**Build & Deploy:**
-
-- Root Directory: `server`
-- Build Command: `npm install`
-- Start Command: `npm start` veya `node index.js`
-
-Deploy sonrası: https://galerio-xsmd.onrender.com/api/health
-
-## 3. Vercel (web)
-
-Repo bağlıysa push yeterli. Environment:
-
-```
-REACT_APP_API_URL=https://galerio-xsmd.onrender.com
+```env
+REACT_APP_API_URL=https://bayramlarauto.onrender.com
 ```
 
-## 4. Mobil — canlı API (web gibi)
+Değiştirdikten sonra **Redeploy** (Clear build cache önerilir).
 
-`mobile/.env` (Expo Go ile canlı test):
+Repoda: `client/.env.production`
 
-```
-EXPO_PUBLIC_API_URL=https://galerio-xsmd.onrender.com
-```
+---
 
-Expo’yu yeniden başlatın: `npx expo start --lan`
+## Mobil
 
-> Yerel Docker API için: `http://192.168.x.x:5000`
+`mobile/eas.json` → `EXPO_PUBLIC_API_URL=https://bayramlarauto.onrender.com`
 
-## 5. Sorun giderme
+Değişiklikten sonra yeni EAS build.
 
-| Belirti | Çözüm |
-|---------|--------|
-| Render build fail | Logs → `npm install` / `package-lock.json` commit edildi mi |
-| 503 health | DB env değişkenleri, `DB_SSL=true` |
-| Web mesaj gitmiyor | `REACT_APP_API_URL` Render’a işaret etmeli |
-| Mobil network error | `.env` Render URL, HTTPS |
+---
+
+## Fotoğraflar
+
+Admin → `/admin/vehicles` → yeniden yükle. URL `res.cloudinary.com` olmalı.
