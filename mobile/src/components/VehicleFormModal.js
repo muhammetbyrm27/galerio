@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
   },
-  inputMulti: { minHeight: 80, textAlignVertical: 'top' },
+  inputMulti: { minHeight: 80, textAlignVertical: 'top', color: '#fff' },
   photoSectionTitle: {
     color: '#fff',
     fontSize: 15,
