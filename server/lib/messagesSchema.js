@@ -33,9 +33,12 @@ async function ensureMessagesSchema() {
 const ADMIN_CONV_REGEXP = '^user_[0-9]+_vehicle_[0-9]+_admin_[0-9]+$';
 
 function adminConversationFilterSql(alias = 'm', adminId) {
+  // Tüm admin konuşmalarını göster (conversation_id'deki admin numarası
+  // kullanıcının sisteme kaydolduğu andaki admin ID'sidir; admin değişse de
+  // gelen kutusu boş kalmamalı).
   return {
-    sql: `${alias}.conversation_id REGEXP ? AND ${alias}.conversation_id LIKE ?`,
-    params: [ADMIN_CONV_REGEXP, `%_admin_${adminId}`],
+    sql: `${alias}.conversation_id REGEXP ?`,
+    params: [ADMIN_CONV_REGEXP],
   };
 }
 

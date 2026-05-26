@@ -1217,7 +1217,6 @@ app.get('/api/conversations', authenticateToken, requireAdmin, async (req, res) 
                 SELECT conversation_id, MAX(id) as max_id
                 FROM messages
                 WHERE conversation_id REGEXP ?
-                  AND conversation_id LIKE ?
                 GROUP BY conversation_id
             ) latest ON m.id = latest.max_id
             LEFT JOIN vehicles v ON m.vehicle_id = v.id
@@ -1233,7 +1232,6 @@ app.get('/api/conversations', authenticateToken, requireAdmin, async (req, res) 
 
         const [conversations] = await db.query(sql, [
             ADMIN_CONV_REGEXP,
-            `%_admin_${adminId}`,
             ...adminFilter.params,
             adminId,
         ]);
