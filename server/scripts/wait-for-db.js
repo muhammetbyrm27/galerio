@@ -7,7 +7,7 @@ const mysql = require('mysql2/promise');
 const MAX_ATTEMPTS = 30;
 const DELAY_MS = 2000;
 
-const useDbSsl = process.env.DB_SSL === 'true';
+const { getDbSslConfig } = require('../lib/dbSsl');
 
 async function ping() {
   const connection = await mysql.createConnection({
@@ -16,7 +16,7 @@ async function ping() {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    ssl: useDbSsl ? { rejectUnauthorized: true } : false,
+    ssl: getDbSslConfig(),
   });
   await connection.query('SELECT 1');
   await connection.end();

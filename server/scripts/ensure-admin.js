@@ -12,8 +12,9 @@ const ADMIN_EMAIL = cliEmail || process.env.ADMIN_EMAIL || 'admin@galerio.com';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123456';
 const ADMIN_NAME = process.env.ADMIN_NAME || 'Galeri Admin';
 
+const { getDbSslConfig } = require('../lib/dbSsl');
+
 async function main() {
-  const useDbSsl = process.env.DB_SSL === 'true';
   const db = await mysql.createPool({
     host: process.env.DB_HOST,
     port: process.env.DB_PORT || 3306,
@@ -21,7 +22,7 @@ async function main() {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     timezone: '+03:00',
-    ssl: useDbSsl ? { rejectUnauthorized: true } : false,
+    ssl: getDbSslConfig(),
   });
 
   const [admins] = await db.query(

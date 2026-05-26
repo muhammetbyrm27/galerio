@@ -1,7 +1,9 @@
 require('dotenv').config();
 const mysql = require('mysql2');
+const { getDbSslConfig } = require('./dbSsl');
 
 const useDbSsl = process.env.DB_SSL === 'true';
+const ssl = getDbSslConfig();
 
 const pool = mysql
   .createPool({
@@ -12,7 +14,7 @@ const pool = mysql
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     timezone: '+03:00',
-    ssl: useDbSsl ? { rejectUnauthorized: true } : false,
+    ssl,
   })
   .promise();
 
