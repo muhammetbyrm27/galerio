@@ -16,3 +16,6 @@ client/.env.local
 # Yüklenen araç fotoğrafları (canlıda Render disk / harici storage)
 server/uploads/*
 !server/uploads/.gitkeep
+
+# Yerel MySQL yedeği (şifre / kullanıcı verisi içerir)
+galerio-yedek.sql
