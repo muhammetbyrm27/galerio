@@ -28,7 +28,8 @@ const ScreenLayout = ({ children, style, keyboardAware = false }) => {
   return (
     <KeyboardAvoidingView
       style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior="padding"
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
     >
       {shell}
       <KeyboardDismissBar />

@@ -125,7 +125,8 @@ const ChatPanel = ({
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
       >
         <View style={styles.header}>
           <Pressable

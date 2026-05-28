@@ -180,7 +180,7 @@ const VehicleFormModal = ({
 };
 
 const styles = StyleSheet.create({
-  scroll: { maxHeight: 420 },
+  scroll: { flex: 1 },
   scrollContent: { paddingBottom: 12 },
   header: {
     flexDirection: 'row',

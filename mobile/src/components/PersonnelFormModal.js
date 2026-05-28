@@ -93,7 +93,7 @@ const PersonnelFormModal = ({
 export default PersonnelFormModal;
 
 const styles = StyleSheet.create({
-  scroll: { maxHeight: 480 },
+  scroll: { flex: 1 },
   scrollContent: { paddingBottom: 12 },
   header: {
     flexDirection: 'row',

@@ -93,7 +93,8 @@ const ForgotPasswordScreen = () => {
   return (
     <LinearGradient colors={['#0f2027', '#203a43', '#2c5364']} style={styles.container}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
         style={styles.inner}
       >
         <ScrollView
