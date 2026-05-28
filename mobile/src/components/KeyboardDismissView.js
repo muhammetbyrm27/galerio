@@ -11,7 +11,6 @@ import {
   KeyboardAvoidingView,
   Pressable,
   ScrollView,
-  findNodeHandle,
 } from 'react-native';
 
 export const FORM_SCROLL_PROPS = {
@@ -55,22 +54,6 @@ export function KeyboardDismissBar() {
 export function FormKeyboardScrollView({ style, contentContainerStyle, children, ...rest }) {
   const scrollRef = useRef(null);
 
-  const handleInputFocus = (event) => {
-    if (!scrollRef.current) return;
-    const nodeHandle = findNodeHandle(event.target);
-    if (!nodeHandle) return;
-    setTimeout(() => {
-      scrollRef.current?.scrollTo?.({ y: 0, animated: false });
-      event.target?.measureLayout?.(
-        findNodeHandle(scrollRef.current),
-        (x, y) => {
-          scrollRef.current?.scrollTo?.({ y: y - 80, animated: true });
-        },
-        () => {}
-      );
-    }, 100);
-  };
-
   return (
     <ScrollView
       ref={scrollRef}
@@ -80,13 +63,7 @@ export function FormKeyboardScrollView({ style, contentContainerStyle, children,
       {...FORM_SCROLL_PROPS}
       {...rest}
     >
-      {React.Children.map(children, (child) =>
-        child
-          ? React.cloneElement(child, {
-              onFocusCapture: handleInputFocus,
-            })
-          : child
-      )}
+      {children}
     </ScrollView>
   );
 }

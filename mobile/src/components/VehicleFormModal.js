@@ -180,7 +180,7 @@ const VehicleFormModal = ({
 };
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1 },
+  scroll: { flexShrink: 1 },
   scrollContent: { paddingBottom: 12 },
   header: {
     flexDirection: 'row',
