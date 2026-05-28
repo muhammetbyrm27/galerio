@@ -294,15 +294,17 @@ app.post('/api/request-password-reset', async (req, res) => {
             [resetCode, user.id]
         );
 
+        const successMessage = '6 haneli doğrulama kodunu yöneticinizden isteyin ya da mail kutunuzu kontrol edin.';
+
         if (!emailTransporter) {
-             console.warn(`⚠️ E-posta servisi yapılandırılmamış. Kod konsola yazdırılıyor.`);
-             console.log(`📧 Şifre sıfırlama kodu (${user.email}): ${resetCode}`);
-             return res.status(200).json({ message: `Şifre sıfırlama kodu gönderildi. (Demo mod: kod konsolda görüntülenir)` });
+            console.warn(`⚠️ E-posta servisi yapılandırılmamış.`);
+            console.log(`📧 Şifre sıfırlama kodu [${user.email}]: ${resetCode}`);
+            return res.status(200).json({ message: successMessage });
         }
-        
+
         const mailOptions = {
             to: user.email,
-            from: process.env.SENDGRID_FROM_EMAIL || process.env.GMAIL_USER || 'noreply@galerio.com',
+            from: process.env.SENDGRID_FROM_EMAIL || 'noreply@galerio.com',
             subject: 'Şifre Sıfırlama İsteği',
             html: `
                 <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
@@ -315,14 +317,19 @@ app.post('/api/request-password-reset', async (req, res) => {
             `
         };
 
-        await emailTransporter.sendMail(mailOptions);
-        
-        console.log(`✅ Şifre sıfırlama kodu e-postası gönderildi: ${user.email}`);
-        res.status(200).json({ message: `Şifre sıfırlama kodu ${user.email} adresine başarıyla gönderildi.` });
+        try {
+            await emailTransporter.sendMail(mailOptions);
+            console.log(`✅ Şifre sıfırlama kodu e-postası gönderildi: ${user.email}`);
+        } catch (mailErr) {
+            console.error(`❌ E-posta gönderilemedi (${user.email}):`, mailErr.message);
+            console.log(`📧 Şifre sıfırlama kodu [${user.email}]: ${resetCode}`);
+        }
+
+        return res.status(200).json({ message: successMessage });
 
     } catch (err) {
         console.error("❌ Şifre sıfırlama isteği hatası:", err);
-        res.status(500).json({ message: 'İşlem sırasında bir sunucu hatası oluştu.' });
+        res.status(500).json({ message: '6 haneli doğrulama kodunu yöneticinizden isteyin ya da mail kutunuzu kontrol edin.' });
     }
 });
 
