@@ -220,13 +220,6 @@ const LoginScreen = () => {
               </LinearGradient>
             </TouchableOpacity>
 
-            {mode === 'login' ? (
-              <Text style={styles.hint}>
-                Yerel test: mobil@test.com / 123456{'\n'}
-                Canlı site (Vercel) farklı veritabanı kullanır; geliştirmede web için
-                localhost:3000 açın.
-              </Text>
-            ) : null}
           </View>
         </ScrollView>
         <KeyboardDismissBar />

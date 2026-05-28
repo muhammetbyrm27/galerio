@@ -42,11 +42,9 @@ EXPO_PUBLIC_API_URL=http://192.168.x.x:5000
 
 Expo'yu yeniden başlatın: `npx expo start --lan`
 
-### 4. Varsayılan giriş hesapları
+### 4. Admin hesabı
 
-| Rol | E-posta | Şifre |
-|-----|---------|-------|
-| Admin | admin@galerio.com | admin123456 |
+Admin kullanıcısı `docker-compose.yml` içindeki `ADMIN_EMAIL` ve `ADMIN_PASSWORD` ortam değişkenleriyle otomatik oluşturulur. Bu değerleri `.env` dosyasından veya compose dosyasından yapılandırabilirsiniz.
 
 Kullanıcı kaydı mobil veya web arayüzünden yapılabilir.
 
@@ -59,7 +57,7 @@ Kullanıcı kaydı mobil veya web arayüzünden yapılabilir.
 | API | http://localhost:5000 |
 | MySQL | localhost:3307 |
 | Redis | localhost:6379 |
-| RabbitMQ Yönetim Paneli | http://localhost:15672 (kullanıcı: `galerio` / şifre: `galerio`) |
+| RabbitMQ Yönetim Paneli | http://localhost:15672 |
 
 ---
 

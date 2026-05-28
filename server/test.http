@@ -1,8 +1,0 @@
-### Kullanıcı Kaydı
-POST http://localhost:5000/api/register
-Content-Type: application/json
-
-{
-  "email": "test@galerio.com",
-  "password": "123456"
-}

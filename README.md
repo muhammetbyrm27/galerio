@@ -61,8 +61,8 @@ docker compose up -d --build
 ```
 
 - API adresi: http://localhost:5000/api/health
-- RabbitMQ yönetim paneli: http://localhost:15672 (kullanıcı: `galerio` / şifre: `galerio`)
-- Varsayılan admin: `admin@galerio.com` / `admin123456`
+- RabbitMQ yönetim paneli: http://localhost:15672
+- Admin hesabı `ADMIN_EMAIL` ve `ADMIN_PASSWORD` ortam değişkenleriyle yapılandırılır
 
 Detay: [docs/FAZ1-DOCKER.md](docs/FAZ1-DOCKER.md)
 
