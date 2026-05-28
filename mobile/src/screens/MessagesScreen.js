@@ -150,8 +150,7 @@ const MessagesScreen = () => {
         getSocket().emit('user_cleared_notifications', { userId: Number(user.id) });
       }
     } catch (_) {
-      /* socket isteğe bağlı */
-    }
+          }
 
     fetchConversations();
     if (!isAdmin) useUnreadMessagesStore.getState().fetchUnreadCount();

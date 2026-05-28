@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* ── ROOT TOKENS ── */
+
 :root {
   --bg:        #0f172a;
   --surface:   #1e293b;
@@ -24,7 +24,7 @@ body {
   color: var(--text);
 }
 
-/* ── HEADER ── */
+
 .home-header {
   display: flex;
   justify-content: space-between;
@@ -104,7 +104,7 @@ body {
   border: 2px solid var(--bg);
 }
 
-/* ── GRID ── */
+
 .vehicle-gallery {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
@@ -114,7 +114,7 @@ body {
   margin: 0 auto;
 }
 
-/* ── CARD ── */
+
 .vehicle-card-item {
   background: linear-gradient(145deg, #182338 0%, #131e2e 100%);
   border-radius: 20px;
@@ -151,9 +151,9 @@ body {
   transform: scale(1.04);
 }
 
-/* price badge over image */
+
 .card-image-container::after {
-  display: none; /* handled by card-content */
+  display: none; 
 }
 
 .card-content {
@@ -193,7 +193,7 @@ body {
   box-shadow: 0 0 12px rgba(0,242,254,0.1);
 }
 
-/* ── LOADING ── */
+
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -205,7 +205,7 @@ body {
   color: var(--muted);
 }
 
-/* ── MODAL OVERLAY ── */
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -269,7 +269,7 @@ body {
   padding: 2rem;
 }
 
-/* ── IMAGE GALLERY in Modal ── */
+
 .modal-images-section,
 .image-gallery { width: 100%; }
 
@@ -312,7 +312,7 @@ body {
 .image-nav-btn.prev { left: 0; border-radius: 14px 0 0 14px; }
 .image-nav-btn.next { right: 0; border-radius: 0 14px 14px 0; }
 
-/* zoom icon hint */
+
 .zoom-hint {
   position: absolute;
   bottom: 10px;
@@ -347,7 +347,7 @@ body {
 .thumbnail:hover { opacity: 1; border-color: var(--muted); }
 .thumbnail.active { border-color: var(--cyan); opacity: 1; }
 
-/* ── MODAL INFO ── */
+
 .modal-info-section {
   display: flex;
   flex-direction: column;
@@ -449,7 +449,7 @@ body {
   box-shadow: 0 8px 24px rgba(0,242,254,0.35);
 }
 
-/* ── LIGHTBOX ── */
+
 .lightbox-overlay {
   position: fixed;
   inset: 0;
@@ -524,7 +524,7 @@ body {
   border-radius: 20px;
 }
 
-/* ── RESPONSIVE ── */
+
 @media (max-width: 768px) {
   .home-header {
     flex-direction: column;

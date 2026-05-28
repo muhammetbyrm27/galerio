@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import API_URL, { getImageUrl } from './config';
@@ -29,13 +27,13 @@ function HomePage() {
     navigate('/', { replace: true });
   }, [navigate]);
   
-  // ===> EKLEME 2: Bildirim sayısını çeken ve socket.io'yu dinleyen yeni bir useEffect eklendi.
+  
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) return;
     if (!socket.connected) {
       socket.connect();
-    }    // Sayfa yüklendiğinde ve yeni mesaj geldiğinde okunmamış sayısını çeken fonksiyon
+    }    
     const fetchUnreadCount = async () => {
       try {
         const response = await axios.get(`${API_URL}/api/user-notifications/unread-count`, {
@@ -48,9 +46,9 @@ function HomePage() {
       }
     };
 
-    fetchUnreadCount(); // Sayfa yüklendiğinde çek
+    fetchUnreadCount(); 
 
-    // Socket event'leri dinle
+    
     const handleUpdateNotification = () => {
       console.log('🔔 Yeni bildirim geldi, sayı güncelleniyor...');
       fetchUnreadCount();
@@ -64,7 +62,7 @@ function HomePage() {
     socket.on('update_notification_count', handleUpdateNotification);
     socket.on('user_notifications_were_reset', handleNotificationsReset);
 
-    // Cleanup
+    
     return () => {
       socket.off('update_notification_count', handleUpdateNotification);
       socket.off('user_notifications_were_reset', handleNotificationsReset);
@@ -100,10 +98,10 @@ function HomePage() {
     
   }, [navigate, handleLogout]); 
 
-  // ===> EKLEME 3: "Mesajlarım" butonuna tıklandığında sayacı sıfırlayacak yeni bir fonksiyon eklendi.
+  
   const handleOpenConversations = () => {
     setIsConversationsModalOpen(true);
-    // Modal açıldığında sayacı sıfırlayın (UserConversationsModal kendi temizliğini yapacak)
+    
     setUnreadCount(0);
   };
   const openDetailsModal = async (vehicleId) => {
@@ -154,7 +152,7 @@ function HomePage() {
             <span>Piyasa Değeri</span>
           </button>
 
-          {/* ===> EKLEME 4: Butonun onClick olayı güncellendi ve bildirim balonu eklendi. */}
+          {}
           <button className="action-button" onClick={handleOpenConversations}>
             <FaEnvelope />
             <span>Mesajlarım</span>
@@ -232,7 +230,7 @@ function VehicleDetailModal({ vehicle, closeModal, openChat }) {
   const lbNext = (e) => { e.stopPropagation(); setLightboxIndex(prev => (prev + 1) % total); };
   const lbPrev = (e) => { e.stopPropagation(); setLightboxIndex(prev => (prev - 1 + total) % total); };
 
-  // keyboard nav for lightbox
+  
   React.useEffect(() => {
     if (!lightboxOpen) return;
     const onKey = (e) => {

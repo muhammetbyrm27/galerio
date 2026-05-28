@@ -73,4 +73,4 @@ const carData = {
 "Volkswagen": ["Amarok", "Arteon", "Beetle", "Bora", "Caddy", "Caravelle", "CC", "Crafter", "EOS", "Fox", "Golf", "ID.3", "ID.4", "ID.5", "ID.Buzz", "Jetta", "LT 35", "Lupo", "Multivan", "Passat", "Passat Variant", "Phaeton", "Polo", "Scirocco", "Sharan", "T-Cross", "T-Roc", "Taigo", "Tiguan", "Touareg", "Touran", "Transporter", "Vento", "Volt"].sort(),
 "Volvo": ["240", "340", "440", "460", "740", "850", "940", "C30", "C70", "EX30", "EX90", "S40", "S60", "S70", "S80", "S90", "V40", "V40 Cross Country", "V50", "V60", "V70", "V90", "XC40", "XC60", "XC70", "XC90"].sort()
 };
-export default carData; 
+export default carData;

@@ -14,7 +14,7 @@ export const getSocket = () => {
   return socket;
 };
 
-/** JWT ile kimlikli socket (admin bildirimleri ve send_message için gerekli) */
+
 export const connectSocket = (token) => {
   const s = getSocket();
   if (token) {

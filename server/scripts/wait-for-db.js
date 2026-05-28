@@ -1,6 +1,3 @@
-/**
- * MySQL hazır olana kadar bekler (Docker başlangıcı).
- */
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const mysql = require('mysql2/promise');
 

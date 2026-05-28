@@ -1,7 +1,3 @@
-/**
- * Redis önbellek — Faz 2
- * REDIS_URL yoksa veya bağlantı kurulamazsa uygulama MySQL ile devam eder.
- */
 const Redis = require('ioredis');
 
 const CACHE_KEYS = {

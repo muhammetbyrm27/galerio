@@ -2,9 +2,6 @@ const path = require('path');
 
 const SERVER_ROOT = path.join(__dirname, '..');
 
-/**
- * Multer dosyası → veritabanında saklanacak göreli yol: uploads/dosya.jpg
- */
 function toPublicUploadPath(file) {
   if (!file) return null;
   if (file.filename) {
@@ -15,9 +12,6 @@ function toPublicUploadPath(file) {
   return `uploads/${path.basename(file.path)}`;
 }
 
-/**
- * Eski kayıtlar (tam disk yolu) ve yeni kayıtlar için tek format.
- */
 function normalizePhotoUrl(stored) {
   if (!stored) return null;
   const s = String(stored).replace(/\\/g, '/').trim();

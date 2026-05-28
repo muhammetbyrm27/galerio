@@ -186,4 +186,4 @@ function PersonnelPage() {
     );
 }
 
-export default PersonnelPage; // ===> HATA BURADAYDI, EKLENDİ <===
+export default PersonnelPage;

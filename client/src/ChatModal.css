@@ -1,6 +1,3 @@
-/* Premium Chat Modal Interface */
-
-/* Enhanced Overlay with Glassmorphism */
 .chat-modal-overlay {
   position: fixed;
   top: 0;
@@ -22,7 +19,7 @@
   to { opacity: 1; backdrop-filter: blur(20px); }
 }
 
-/* Premium Modal Content */
+
 .chat-modal-content {
   width: 100%;
   max-width: 450px;
@@ -64,7 +61,7 @@
   z-index: 1;
 }
 
-/* Premium Header Design */
+
 .chat-header {
   padding: 25px 30px 20px 30px;
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
@@ -135,7 +132,7 @@
   box-shadow: 0 8px 20px rgba(229, 62, 62, 0.3);
 }
 
-/* Premium Messages Area */
+
 .chat-messages {
   flex-grow: 1;
   padding: 25px 20px;
@@ -150,7 +147,7 @@
   z-index: 2;
 }
 
-/* Custom Scrollbar */
+
 .chat-messages::-webkit-scrollbar {
   width: 6px;
 }
@@ -170,7 +167,7 @@
   background: linear-gradient(45deg, #5a67d8, #6b46c1);
 }
 
-/* Message Wrapper with Enhanced Layout */
+
 .message-wrapper {
   display: flex;
   width: 100%;
@@ -198,7 +195,7 @@
   justify-content: flex-start;
 }
 
-/* Premium Message Bubbles */
+
 .message-bubble {
   max-width: 75%;
   padding: 18px 24px;
@@ -214,7 +211,7 @@
   transform: translateY(-2px);
 }
 
-/* Sent Messages (User) - Premium Blue Gradient */
+
 .message-wrapper.sent .message-bubble {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -239,7 +236,7 @@
   box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
 }
 
-/* Received Messages (Admin) - Glassmorphism */
+
 .message-wrapper.received .message-bubble {
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(15px);
@@ -274,7 +271,7 @@
   z-index: 1;
 }
 
-/* Delete Button — outside bubble, flex sibling */
+
 .delete-message-btn {
   flex-shrink: 0;
   align-self: center;
@@ -306,7 +303,7 @@
   border-color: #ef4444;
 }
 
-/* Premium Input Form */
+
 .chat-input-form {
   display: flex;
   align-items: center;
@@ -400,7 +397,7 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Responsive Design */
+
 @media (max-width: 768px) {
   .chat-modal-content {
     width: 95%;
@@ -436,7 +433,7 @@
   
   .chat-input-form input {
     padding: 14px 20px;
-    font-size: 16px; /* Prevents zoom on iOS */
+    font-size: 16px; 
   }
   
   .chat-input-form button {
@@ -459,7 +456,7 @@
   }
 }
 
-/* Accessibility */
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -476,10 +473,10 @@
 }
 
 .chat-input-form input:focus-visible {
-  outline: none; /* Custom focus style already applied */
+  outline: none; 
 }
 
-/* Loading animation for message sending */
+
 .message-bubble.sending {
   opacity: 0.7;
   animation: pulse 1.5s infinite;
@@ -490,7 +487,7 @@
   50% { opacity: 1; }
 }
 
-/* Enhanced visual feedback */
+
 .chat-modal-content:hover {
   box-shadow: 
     0 35px 70px rgba(0, 0, 0, 0.5),

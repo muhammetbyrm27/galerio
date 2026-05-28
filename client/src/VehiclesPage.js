@@ -219,7 +219,7 @@ function VehiclesPage() {
         
         const vehicleData = new FormData();
         
-        // Form verilerini ekle
+        
         Object.keys(formData).forEach(key => {
           if (formData[key] !== '') {
             vehicleData.append(key, formData[key]);
@@ -231,7 +231,7 @@ function VehiclesPage() {
           vehicleData.append('photos', file); 
         });
         
-        // FormData içeriğini kontrol et
+        
         console.log("📝 Form verisi hazırlandı:");
         for (let [key, value] of vehicleData.entries()) {
           console.log(`${key}:`, value);
@@ -451,7 +451,7 @@ function VehiclesPage() {
                         alt="Araç"
                         onError={(e) => {
                           console.error(`Fotoğraf yüklenemedi: ${photo.photo_url}`);
-                          e.target.src = '/placeholder-car.png'; // Fallback image
+                          e.target.src = '/placeholder-car.png'; 
                         }}
                       />
                       <button 

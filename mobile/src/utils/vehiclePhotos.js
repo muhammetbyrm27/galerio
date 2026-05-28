@@ -1,4 +1,3 @@
-/** React Native FormData — sunucu `photos` alanı (multer array) */
 export const appendPhotosToFormData = (formData, assets) => {
   assets.forEach((asset, index) => {
     const name =
@@ -29,9 +28,7 @@ export const buildPhotosOnlyFormData = (photoAssets) => {
 
 const PHOTO_BATCH_SIZE = 2;
 
-/**
- * Çok fotoğraf tek istekte Render zaman aşımına düşmesin diye parça parça yükler.
- */
+
 export async function uploadVehiclePhotosInBatches(vehicleId, assets, apiClient, batchSize = PHOTO_BATCH_SIZE) {
   if (!assets?.length) return;
 

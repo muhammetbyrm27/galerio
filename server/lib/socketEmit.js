@@ -1,6 +1,3 @@
-/**
- * İşlenmiş mesajı Socket.io ile istemcilere dağıtır.
- */
 async function emitMessageProcessed(io, db, { newMessage, sender }) {
   const { conversation_id, sender_id, receiver_id, vehicle_id } = newMessage;
 

@@ -1,6 +1,3 @@
-/**
- * Docker container başlangıcı: DB bekle → admin seed → API.
- */
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const { spawnSync } = require('child_process');
 const path = require('path');

@@ -40,7 +40,7 @@ function MessagesPage() {
   }, [navigate]);
 
   useEffect(() => {
-    // Socket bağlantısını kur
+    
     if (!socket.connected) {
       socket.connect();
     }
@@ -61,10 +61,10 @@ function MessagesPage() {
     
     const handleNewUnreadMessage = (data) => {
       console.log('📩 Yeni mesaj bildirimi alındı:', data);
-      fetchConversations(); // Konuşma listesini yenile
+      fetchConversations(); 
     };
 
-    // *** YENİ EKLEME: Conversation okundu durumu güncellendiğinde ***
+    
     const handleConversationReadStatusUpdated = (data) => {
       console.log('👁️ Conversation okundu durumu güncellendi:', data);
       fetchConversations();
@@ -128,7 +128,7 @@ function MessagesPage() {
   const handleSelectConversation = (convo) => {
     setSelectedConversation(convo);
     
-    // Bu konuşmaya ait bildirimleri temizle
+    
     const token = localStorage.getItem('token');
     if (token) {
         try {
@@ -183,7 +183,7 @@ function MessagesPage() {
             <div className="no-conversations"><p>Henüz bir görüşme başlatılmamış.</p></div>
           ) : (
             conversations.map((convo) => {
-              // *** YENİ EKLEME: Okunmamış mesaj var mı kontrol et ***
+              
               const hasUnreadMessages = convo.unread_count > 0;
               
               return (
@@ -194,7 +194,7 @@ function MessagesPage() {
                 >
                   <div className="conversation-avatar">
                     {convo.user_name?.charAt(0).toUpperCase() || '?'}
-                    {/* *** YENİ EKLEME: Okunmamış mesaj badge'i *** */}
+                    {}
                     {hasUnreadMessages && (
                       <span className="unread-badge">{convo.unread_count}</span>
                     )}
@@ -213,7 +213,7 @@ function MessagesPage() {
                     </div>
                     <p className={`last-message ${hasUnreadMessages ? 'unread-message' : ''}`}>
                       {convo.message}
-                      {/* *** YENİ EKLEME: Okunmamış mesaj ikonu *** */}
+                      {}
                       {hasUnreadMessages && <span className="unread-indicator"> ●</span>}
                     </p>
                   </div>

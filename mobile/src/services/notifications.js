@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
-/** Expo Go remote push desteklemez; modül yüklenmez, konsol uyarısı çıkmaz. */
+
 export const isNotificationsSupported = Constants.appOwnership !== 'expo';
 
 let notificationsModule = null;

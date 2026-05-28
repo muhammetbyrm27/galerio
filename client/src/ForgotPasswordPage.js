@@ -1,10 +1,9 @@
-// export default ForgotPasswordPage;
 import React, { useState } from 'react';
 import axios from 'axios';
 import API_URL from './config';
 import { useNavigate } from 'react-router-dom';
 
-// ===> DEĞİŞİKLİK 1: ARTIK KENDİ ÖZEL CSS DOSYASINI KULLANIYOR <===
+
 import './ForgotPasswordPage.css'; 
 
 function ForgotPasswordPage() {
@@ -48,7 +47,7 @@ function ForgotPasswordPage() {
     }
   };
 
-  // ===> DEĞİŞİKLİK 2: JSX YAPISI YENİ TASARIMA GÖRE DÜZENLENDİ <===
+  
   return (
     <div className="forgot-password-container">
       <div className="forgot-password-form">
@@ -103,7 +102,7 @@ function ForgotPasswordPage() {
         )}
 
         {error && <p className="error">{error}</p>}
-        {/* Kullanıcıyı Giriş Sayfasına döndüren bir link eklemek her zaman iyidir. */}
+        {}
         {step !== 3 && <button className="back-to-login-button" onClick={() => navigate('/')}>Giriş Yap'a Dön</button>}
 
       </div>

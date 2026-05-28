@@ -38,29 +38,29 @@ function AdminChatBox({ conversationId }) {
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    // Conversation formatını doğrula (user_X_vehicle_Y_admin_Z)
+    
     if (!/^user_\d+_vehicle_\d+_admin_\d+$/.test(conversationId)) {
       console.error(`🚨 Geçersiz conversation formatı: ${conversationId}`);
       return;
     }
 
-    // Socket bağlantısını sağla
+    
     if (!socket.connected) {
       console.log('🔌 AdminChatBox: Socket bağlantısı kuruluyor...');
       socket.connect();
     }
 
-    // Önceki room'dan ayrıl
+    
     if (currentRoomRef.current && currentRoomRef.current !== conversationId) {
       console.log(`🚪 AdminChatBox: Eski room'dan ayrılıyor: ${currentRoomRef.current}`);
       socket.emit('leave_room', currentRoomRef.current);
     }
 
-    // Yeni room'a katıl
+    
     console.log(`🏠 AdminChatBox: Yeni room'a katılıyor: ${conversationId}`);
     currentRoomRef.current = conversationId;
 
-    // Mesajları temizle (yeni konuşma için)
+    
     setMessages([]);
 
 
@@ -79,7 +79,7 @@ function AdminChatBox({ conversationId }) {
       console.log('🔍 Mesaj conversation_id:', message.conversation_id);
       console.log('🔍 Mevcut conversation_id:', conversationId);
 
-      // *** SIKI GÜVENLİK KONTROLÜ: Tam eşleşme kontrolü ***
+      
       if (message.conversation_id === conversationId) {
         console.log('✅ AdminChatBox: Mesaj bu conversation\'a ait, ekleniyor');
         setMessages(prev => [...prev, message]);
@@ -102,7 +102,7 @@ function AdminChatBox({ conversationId }) {
       }
     };
 
-    // Socket event'lerini dinle
+    
     if (socket.connected) {
       onConnect();
     } else {
@@ -114,13 +114,13 @@ function AdminChatBox({ conversationId }) {
     socket.on('message_deleted', handleMessageDeleted);
     socket.on('conversation_deleted', handleConversationDeleted);
 
-    // *** YENİ EKLEME: Bu conversation'a ait bildirimleri temizle ***
+    
     socket.emit('admin_cleared_notifications', {
       adminId: adminUser.id,
       conversationId: conversationId
     });
 
-    // Cleanup function
+    
     return () => {
       socket.off('connect', onConnect);
       socket.off('load_messages', handleLoadMessages);
@@ -130,7 +130,7 @@ function AdminChatBox({ conversationId }) {
     };
   }, [conversationId, adminUser, isLoading]);
 
-  // Component unmount olduğunda room'dan ayrıl
+  
   useEffect(() => {
     return () => {
       if (currentRoomRef.current) {
@@ -206,7 +206,7 @@ function AdminChatBox({ conversationId }) {
     );
   })
 
-  // Yükleme durumu
+  
   if (isLoading) {
     return (
         <div className="admin-chat-box">

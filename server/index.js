@@ -76,7 +76,7 @@ const applySocketAuth = (socket, token) => {
     }
 };
 
-// Socket bağlantısında JWT ile kullanıcı kimliği (mesaj/bildirim için)
+
 io.use((socket, next) => {
     const token = socket.handshake.auth?.token;
     if (token) {
@@ -190,7 +190,7 @@ const runUpload = (uploadMiddleware) => (req, res, next) => {
     });
 };
 
-// E-posta transporter - Render Free tier için sadece SendGrid Web API (HTTPS) kullanılabilir, klasik SMTP (Gmail) portları engellidir.
+
 const sendgridTransport = require('nodemailer-sendgrid-transport');
 
 let emailTransporter = null;
@@ -515,7 +515,7 @@ app.post('/api/vehicles/:id/add-photos', authenticateToken, requireAdmin, runUpl
             req.files.forEach((file) => {
                 try {
                     fs.unlinkSync(file.path);
-                } catch (_) { /* ignore */ }
+                } catch (_) {  }
             });
             return res.status(400).json({
                 message: `Bu araçta en fazla ${MAX_PHOTOS_PER_VEHICLE} fotoğraf olabilir. Mevcut: ${existing}, eklenmek istenen: ${incoming}.`,
@@ -796,7 +796,7 @@ app.get('/api/user-notifications/unread-count', authenticateToken, async (req, r
     }
 });
 
-// Kullanıcı: sohbeti yalnızca kendi gelen kutusundan kaldırır (mesajlar kalır)
+
 app.delete('/api/user/conversations/:conversationId', authenticateToken, async (req, res) => {
     try {
         const { conversationId } = req.params;
@@ -827,7 +827,7 @@ app.delete('/api/user/conversations/:conversationId', authenticateToken, async (
     }
 });
 
-// Tüm okunmamış bildirimleri okundu işaretle
+
 app.post('/api/notifications/mark-all-read', authenticateToken, async (req, res) => {
     try {
         await ensureMessagesSchema();
@@ -864,7 +864,7 @@ app.post('/api/notifications/mark-all-read', authenticateToken, async (req, res)
     }
 });
 
-// Gelen kutusunu tamamen temizle (yalnızca kendi listesi)
+
 app.post('/api/inbox/clear', authenticateToken, async (req, res) => {
     try {
         await ensureHiddenInboxTable();
@@ -947,7 +947,7 @@ app.delete('/api/conversations/:conversationId', authenticateToken, requireAdmin
 
 
 
-// Socket.IO bölümünün düzeltilmiş versiyonu
+
 
 io.on('connection', (socket) => {
     const token = socket.handshake.auth?.token;
@@ -975,7 +975,7 @@ io.on('connection', (socket) => {
             const currentUserId = decodedUser.id;
             const currentUserRole = decodedUser.role;
 
-            // *** DÜZELTME: YENİ Conversation ID format kontrolü (sadece _ kullanıyor) ***
+            
             const userIdMatch = conversationId.match(/user_(\d+)_/);
             const adminIdMatch = conversationId.match(/admin_(\d+)$/);
 
@@ -984,7 +984,7 @@ io.on('connection', (socket) => {
 
             let hasAccess = false;
 
-            // *** SIKI GÜVENLİK KONTROLÜ ***
+            
             if (currentUserRole === 'admin' && adminIdFromRoom != null) {
                 hasAccess = true;
                 console.log(`✅ Admin ${currentUserId} müşteri sohbetine erişiyor: ${conversationId}`);
@@ -992,20 +992,20 @@ io.on('connection', (socket) => {
                 hasAccess = true;
                 console.log(`✅ User ${currentUserId} kendi conversation'ına erişiyor: ${conversationId}`);
             } else {
-                // GÜVENLİK İHLALİ LOGLAMA
+                
                 console.error(`🚨 GÜVENLİK İHLALİ ENGELLENDI:`);
                 console.error(`🚨 Kullanıcı: ${currentUserId} (${currentUserRole})`);
                 console.error(`🚨 Erişmeye çalıştığı: ${conversationId}`);
                 console.error(`🚨 User ID from room: ${userIdFromRoom}`);
                 console.error(`🚨 Admin ID from room: ${adminIdFromRoom}`);
-                return; // Erişimi reddet
+                return; 
             }
 
             if (hasAccess) {
                 console.log(`🏠 Socket ${socket.id}, DOĞRULANMIŞ kullanıcı ${currentUserId} (${currentUserRole}) ile odaya katıldı: ${conversationId}`);
                 socket.join(conversationId);
 
-                // Socket'e kullanıcı bilgisini kaydet
+                
                 socket.userId = currentUserId;
                 socket.userRole = currentUserRole;
                 socket.conversationId = conversationId;
@@ -1014,7 +1014,7 @@ io.on('connection', (socket) => {
                     console.error('Sohbet gizleme kaldırılamadı:', e)
                 );
 
-                // *** DÜZELTME: Sadece bu conversation'a ait mesajları getir ***
+                
                 const sql = `
                     SELECT m.*, COALESCE(sender.name, 'Kullanıcı') as sender_name 
                     FROM messages m 
@@ -1048,7 +1048,7 @@ io.on('connection', (socket) => {
             return;
         }
 
-        // İsteğe bağlı token ile kimlik doğrulama (mobil / join_room öncesi)
+        
         if (token && (socket.userId == null || socket.userRole == null)) {
             if (!applySocketAuth(socket, token)) {
                 console.error('❌ send_message token geçersiz');
@@ -1059,13 +1059,13 @@ io.on('connection', (socket) => {
         const senderIdNum = Number(sender_id);
         const socketUserIdNum = Number(socket.userId);
 
-        // *** GÜVENLİK: Mesaj gönderen kişi socket ile aynı mı? ***
+        
         if (socket.userId == null || Number.isNaN(socketUserIdNum) || socketUserIdNum !== senderIdNum) {
             console.error(`🚨 GÜVENLİK İHLALİ: Socket user ${socket.userId} başkası adına (${sender_id}) mesaj göndermeye çalıştı!`);
             return;
         }
 
-        // *** GÜVENLİK: Bu conversation'da bu kullanıcı var mı? ***
+        
         const userIdMatch = conversation_id.match(/user_(\d+)_/);
         const adminIdMatch = conversation_id.match(/admin_(\d+)$/);
 
@@ -1096,7 +1096,7 @@ io.on('connection', (socket) => {
                 return;
             }
 
-            // RabbitMQ yoksa doğrudan işle (geliştirme yedek yolu)
+            
             const result = await processIncomingMessage(db, queuePayload);
             await emitMessageProcessed(io, db, result);
         } catch (err) {
@@ -1104,12 +1104,12 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Admin bildirim temizleme
+    
     socket.on('admin_cleared_notifications', async (data) => {
         const { adminId, conversationId } = data;
         if (!adminId) return;
 
-        // Güvenlik: Sadece kendi bildirimlerini temizleyebilir
+        
         if (Number(socket.userId) !== Number(adminId) || socket.userRole !== 'admin') {
             console.error(`🚨 GÜVENLİK: Socket user ${socket.userId} başkasının bildirimlerini temizlemeye çalıştı!`);
             return;
@@ -1148,12 +1148,12 @@ io.on('connection', (socket) => {
         }
     });
 
-    // User bildirim temizleme
+    
     socket.on('user_cleared_notifications', async (data) => {
         const { userId, conversationId } = data;
         if (!userId) return;
 
-        // Güvenlik: Sadece kendi bildirimlerini temizleyebilir
+        
         if (Number(socket.userId) !== Number(userId) || socket.userRole !== 'user') {
             console.error(`🚨 GÜVENLİK: Socket user ${socket.userId} başkasının bildirimlerini temizlemeye çalıştı!`);
             return;
@@ -1294,4 +1294,4 @@ connectRabbitMQ().catch((err) => console.warn('RabbitMQ başlatma:', err.message
 server.listen(PORT, () => {
     console.log(`🚀 Sunucu ${PORT} portunda çalışıyor.`);
     cleanupOldMessages();
-}); 
+});

@@ -1,4 +1,3 @@
-/* BU KODUN TAMAMINI KOPYALAYIP MEVCUT CreditCalculatorPage.css DOSYANIZLA DEĞİŞTİRİN */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
 :root {
@@ -27,11 +26,11 @@
   display: flex;
   gap: 2rem;
   align-items: flex-start;
-  max-width: 1400px; /* Daha geniş ekranlar için */
+  max-width: 1400px; 
   margin: 0 auto;
 }
 
-/* Kartlar için genel animasyon */
+
 @keyframes fadeInSlideUp {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
@@ -155,7 +154,7 @@ tbody tr:hover {
 }
 td:nth-child(2) { text-align: center; }
 
-/* Teklif Kartları */
+
 .teklif-listesi { 
   display: grid; 
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 

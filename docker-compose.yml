@@ -1,7 +1,3 @@
-# Galerio — Faz 1: Docker Compose
-# Kullanım: docker compose up -d --build
-# API: http://localhost:5000/api/health
-
 services:
   mysql:
     image: mysql:8.0
@@ -12,7 +8,6 @@ services:
       MYSQL_DATABASE: galerio
       MYSQL_USER: galerio
       MYSQL_PASSWORD: galerio
-    # Yerel MySQL 3306 kullanıyorsa çakışmayı önlemek için host:3307
     ports:
       - "3307:3306"
     volumes:

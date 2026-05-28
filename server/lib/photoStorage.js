@@ -25,7 +25,6 @@ function useCloudinary() {
   return isCloudinaryEnabled();
 }
 
-/** Multer storage: Cloudinary açıksa bellek, değilse disk */
 function createMulterStorage(uploadsDir, multer) {
   ensurePhotoStorage();
   if (isCloudinaryEnabled()) {

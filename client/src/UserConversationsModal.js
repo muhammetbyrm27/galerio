@@ -16,15 +16,15 @@ function UserConversationsModal({ closeModal, openChatForVehicle }) {
         try {
             const decodedUser = jwtDecode(token);
 
-            // Socket bağlantısını sağla
+            
             if (!socket.connected) {
                 socket.connect();
             }
 
-            // Tüm bildirimleri temizle (conversationId olmadan)
+            
             socket.emit('user_cleared_notifications', {
                 userId: decodedUser.id
-                // conversationId yok - tümü temizlenecek
+                
             });
 
             console.log('📭 UserConversationsModal: Tüm bildirimler temizlendi');
@@ -100,7 +100,7 @@ function UserConversationsModal({ closeModal, openChatForVehicle }) {
             return;
         }
 
-        // *** YENİ EKLEME: Spesifik konuşma açılırken o konuşmanın bildirimlerini temizle ***
+        
         const token = localStorage.getItem('token');
         if (token) {
             try {
@@ -117,7 +117,7 @@ function UserConversationsModal({ closeModal, openChatForVehicle }) {
         openChatForVehicle(vehicleId);
     };
 
-    // ===> YENİ FONKSİYON: Sohbeti silmek için eklendi <===
+    
 
     
     return (

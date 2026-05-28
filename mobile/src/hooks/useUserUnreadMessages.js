@@ -3,7 +3,7 @@ import { connectSocket, getSocket } from '../api/socket';
 import useAuthStore from '../store/useAuthStore';
 import useUnreadMessagesStore from '../store/useUnreadMessagesStore';
 
-/** Kullanıcı: okunmamış mesaj sayısı + socket ile canlı güncelleme */
+
 export function useUserUnreadMessages() {
   const { user, token, isAuthenticated } = useAuthStore();
   const unreadCount = useUnreadMessagesStore((s) => s.unreadCount);

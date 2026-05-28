@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { connectSocket, getSocket } from '../api/socket';
 import useAuthStore from '../store/useAuthStore';
 
-/** Giriş yapmış herkes için socket bağlantısını canlı tut (admin bildirimleri dahil) */
+
 export function useMessageSocket() {
   const { token, isAuthenticated } = useAuthStore();
 

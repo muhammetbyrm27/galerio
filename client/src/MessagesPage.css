@@ -1,5 +1,3 @@
-/* MessagesPage — dark premium theme */
-
 .messages-page-container {
   display: flex;
   height: 100vh;
@@ -8,7 +6,7 @@
   color: #f1f5f9;
 }
 
-/* ── SIDEBAR ── */
+
 .conversations-sidebar {
   width: 340px;
   min-width: 340px;
@@ -92,7 +90,7 @@
 .conversations-list::-webkit-scrollbar { width: 4px; }
 .conversations-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
 
-/* ── CONVERSATION ITEM ── */
+
 .conversation-item {
   display: flex;
   align-items: center;
@@ -230,7 +228,7 @@
 }
 .no-conversations p { color: #475569; font-size: 0.9rem; }
 
-/* ── CHAT AREA ── */
+
 .chat-area {
   flex: 1;
   display: flex;
@@ -250,7 +248,7 @@
 .no-chat-content h3 { color: #94a3b8; margin-bottom: 8px; font-size: 1.2rem; }
 .no-chat-content p { color: #475569; font-size: 0.9rem; }
 
-/* ── LOADING / ERROR ── */
+
 .loading-container,
 .error-container {
   display: flex;
@@ -275,7 +273,7 @@
   font-weight: 700;
 }
 
-/* ── RESPONSIVE ── */
+
 @media (max-width: 768px) {
   .messages-page-container { flex-direction: column; }
   .conversations-sidebar { width: 100%; min-width: unset; max-height: 40vh; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }

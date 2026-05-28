@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './MarketValuePage.css';
 import carData from './arabaVerisi.js';
 
-// Path eşleştirmeleri
+
 const sahibindenFuelMap = {
     'benzin': 'benzinli',
     'lpg': 'benzin-lpg',
@@ -66,7 +66,7 @@ export default function MarketValuePage() {
     const getFinalBrand = () => filters.brand === 'Other' ? filters.customBrand : filters.brand;
     const getFinalModel = () => filters.model === 'Other' ? filters.customModel : filters.model;
 
-    // Sahibinden.com yönlendirme
+    
     const redirectToSahibinden = () => {
         const finalBrand = getFinalBrand();
         const finalModel = getFinalModel();
@@ -120,7 +120,7 @@ export default function MarketValuePage() {
         return `/ikinci-el/otomobil/${brandSlug}-${slugifyArabam(model)}`;
     };
 
-    // Arabam.com yönlendirme
+    
     const redirectToArabamCom = () => {
         const finalBrand = getFinalBrand();
         const finalModel = getFinalModel();

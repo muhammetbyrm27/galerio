@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import './App.css';
@@ -18,8 +17,6 @@ import PersonnelPage from './PersonnelPage';
 import CreditCalculatorPage from './CreditCalculatorPage';
 import MarketValuePage from './MarketValuePage';
 import MessagesPage from './MessagesPage';
-
-// import UserMessagesPage from './UserMessagesPage'; // Bu dosya henüz olmadığı için yoruma alıyoruz
 
 function AppContent() {
   const [notificationCount, setNotificationCount] = useState(0);
@@ -41,7 +38,7 @@ function AppContent() {
       return;
     }
 
-    // *** KESİN ÇÖZÜM: Bağlantı sadece burada, bir kez kurulur. ***
+    
     if (!socket.connected) {
         console.log(`✅ Token doğrulandı (${decodedUser.role}), App.js üzerinden socket bağlantısı kuruluyor...`);
         socket.connect();
@@ -84,7 +81,7 @@ function AppContent() {
       <Route path="/home" element={<ProtectedRoute><HomePage notificationCount={notificationCount} /></ProtectedRoute>} />
       <Route path="/kredi-hesapla" element={<ProtectedRoute><CreditCalculatorPage /></ProtectedRoute>} />
       <Route path="/piyasa-degeri" element={<ProtectedRoute><MarketValuePage /></ProtectedRoute>} />
-      {/* <Route path="/mesajlarim" element={<ProtectedRoute><UserMessagesPage setNotificationCount={setNotificationCount} /></ProtectedRoute>} /> */}
+      {}
       <Route path="/dashboard" element={<AdminProtectedRoute><Dashboard notificationCount={notificationCount} /></AdminProtectedRoute>} />
       <Route path="/admin/vehicles" element={<AdminProtectedRoute><VehiclesPage /></AdminProtectedRoute>} />
       <Route path="/admin/personnel" element={<AdminProtectedRoute><PersonnelPage /></AdminProtectedRoute>} />

@@ -1,5 +1,3 @@
-// Telefonda test: bilgisayarınızın yerel IP'si (örn. 192.168.1.42:5000)
-// .env dosyasında EXPO_PUBLIC_API_URL=http://192.168.x.x:5000 tanımlayın
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
 
 export const getImageUrl = (path) => {

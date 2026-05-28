@@ -22,7 +22,6 @@ const formatMoney = (value) =>
     maximumFractionDigits: 2,
   });
 
-/** Türkçe giriş: 2,5 veya 2.5 → 2.5 */
 const parseDecimal = (value) => {
   const cleaned = String(value).trim().replace(/\s/g, '').replace(',', '.');
   return parseFloat(cleaned);

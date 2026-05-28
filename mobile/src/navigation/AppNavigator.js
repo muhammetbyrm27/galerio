@@ -12,7 +12,6 @@ import { usePushNotifications } from '../hooks/usePushNotifications';
 import { useUserUnreadMessages } from '../hooks/useUserUnreadMessages';
 import { useMessageSocket } from '../hooks/useMessageSocket';
 
-// User Screens
 import LoginScreen from '../screens/LoginScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -21,7 +20,6 @@ import MarketValueScreen from '../screens/MarketValueScreen';
 import MessagesScreen from '../screens/MessagesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
-// Admin Screens
 import AdminDashboardScreen from '../screens/AdminDashboardScreen';
 import AdminVehiclesScreen from '../screens/AdminVehiclesScreen';
 import AdminPersonnelScreen from '../screens/AdminPersonnelScreen';
@@ -50,7 +48,6 @@ const drawerIcon = (name, focused) => (
   <Ionicons name={focused ? name : `${name}-outline`} size={22} color={focused ? '#00f2fe' : '#94a3b8'} />
 );
 
-// Alt Menü (Normal Kullanıcılar için)
 const UserTabNavigator = () => {
   const insets = useSafeAreaInsets();
   const navOpts = buildNavigatorScreenOptions(insets);
@@ -114,7 +111,6 @@ const UserTabNavigator = () => {
   );
 };
 
-// Yandan Açılır Menü (Yöneticiler için)
 const AdminDrawerNavigator = () => {
   const insets = useSafeAreaInsets();
   const navOpts = buildNavigatorScreenOptions(insets);

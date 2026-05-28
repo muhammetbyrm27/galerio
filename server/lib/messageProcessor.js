@@ -1,8 +1,6 @@
 const { unhideConversationForUser } = require('./inbox');
 
-/**
- * Mesajı veritabanına yazar (RabbitMQ worker veya doğrudan API).
- */
+
 async function processIncomingMessage(db, data) {
   const {
     conversation_id,
@@ -25,13 +23,13 @@ async function processIncomingMessage(db, data) {
   const adminIdFromConv = adminIdMatch ? parseInt(adminIdMatch[1], 10) : null;
   const userIdFromConv = userIdMatch ? parseInt(userIdMatch[1], 10) : null;
 
-  // receiver_id'yi istemciden değil, veritabanından belirle:
-  // Kullanıcı gönderiyorsa -> gerçek admin'i bul
-  // Admin gönderiyorsa -> conversation'daki kullanıcıyı hedefle
+  
+  
+  
   let actualReceiverId = data.receiver_id;
 
   if (sender.role !== 'admin') {
-    // Kullanıcı mesaj atıyor: veritabanındaki ilk admin'i bul
+    
     const [adminRows] = await db.query(
       "SELECT id FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1"
     );
@@ -40,7 +38,7 @@ async function processIncomingMessage(db, data) {
     }
     actualReceiverId = adminRows[0].id;
   } else if (userIdFromConv) {
-    // Admin mesaj atıyor: conversation'dan kullanıcıyı bul
+    
     actualReceiverId = userIdFromConv;
   }
 

@@ -1,5 +1,3 @@
-// BU KODUN TAMAMINI KOPYALAYIP MEVCUT LoginPage.js DOSYANIZLA DEĞİŞTİRİN
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import API_URL from './config';

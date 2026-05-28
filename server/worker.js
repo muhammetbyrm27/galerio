@@ -1,7 +1,3 @@
-/**
- * RabbitMQ mesaj worker — Faz 3
- * Kuyruktan okur → MySQL → Redis pub/sub ile API'ye socket olayı gönderir.
- */
 require('dotenv').config();
 const path = require('path');
 const { waitForDatabase } = require('./scripts/wait-for-db');

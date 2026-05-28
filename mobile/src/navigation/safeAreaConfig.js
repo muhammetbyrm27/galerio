@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-/** Ortak header + sekme çubuğu (iPhone çentik / home indicator) */
+
 export const buildNavigatorScreenOptions = (insets) => {
   const bottomPad = Math.max(insets.bottom, Platform.OS === 'ios' ? 8 : 4);
   const tabBarHeight = 56 + bottomPad;

@@ -1,4 +1,3 @@
-/* BU KODUN TAMAMINI KOPYALAYIP MEVCUT LoginPage.css DOSYANIZLA DEĞİŞTİRİN */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
 :root {
@@ -30,7 +29,7 @@ body {
   background-color: var(--dark-bg-end);
 }
 
-/* Header */
+
 .login-header {
   position: absolute; top: 0; left: 0; width: 100%; padding: 1.5rem 3rem;
   display: flex; justify-content: space-between; align-items: center;
@@ -40,12 +39,12 @@ body {
 .main-nav a { color: rgba(255, 255, 255, 0.9); text-decoration: none; margin-left: 2.5rem; font-weight: 500; transition: color 0.3s; text-shadow: 1px 1px 5px rgba(0,0,0,0.5); }
 .main-nav a:hover { color: #fff; }
 
-/* Sol Taraf - Görsel Alanı */
+
 .visual-section { flex: 1.2; position: relative; display: flex; justify-content: center; align-items: center; text-align: center; padding: 2rem; }
 @keyframes kenBurns { 0% { transform: scale(1.05) translate(0, 0); } 50% { transform: scale(1.15) translate(-2%, 2%); } 100% { transform: scale(1.05) translate(0, 0); } }
 .bg-image { position: absolute; inset: 0; background-size: cover; background-position: center; transition: opacity 1.5s ease-in-out; animation: kenBurns 25s infinite; }
 
-/* *** OKUNABİLİRLİK ÇÖZÜMÜ 1: Overlay güçlendirildi *** */
+
 .overlay {
   position: absolute;
   inset: 0;
@@ -55,7 +54,7 @@ body {
 .brand-showcase { position: relative; z-index: 2; animation: slideUp 1.2s cubic-bezier(0.25, 1, 0.5, 1); }
 @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-/* *** OKUNABİLİRLİK ÇÖZÜMÜ 2: Metin gölgesi güçlendirildi *** */
+
 .brand-showcase h1 {
   color: #fff;
   font-size: 3rem;
@@ -72,7 +71,7 @@ body {
   text-shadow: 0px 2px 10px rgba(0, 0, 0, 0.9);
 }
 
-/* Sağ Taraf - Form Alanı (Premium Koyu Tema) */
+
 .form-section {
   flex: 1;
   display: flex;
@@ -93,7 +92,7 @@ body {
 .tab-button.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 40%; height: 3px; background-color: var(--primary-blue); border-radius: 3px; }
 .admin-tab { flex: 0.7; }
 
-/* Form ve Gecikmeli Animasyonlar */
+
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .animate-form { animation: fadeIn 0.6s ease-in-out forwards; }
 .login-form > * { opacity: 0; animation: fadeIn 0.5s ease-out forwards; }
@@ -117,7 +116,7 @@ body {
 .form-links span:hover { text-decoration: underline; }
 .error { color: #f87171; margin-top: 15px; font-weight: 500; font-size: 0.9rem; }
 
-/* === MOBİL UYUMLULUK (RESPONSIVE) === */
+
 @media (max-width: 768px) {
   .login-page-container {
     flex-direction: column;
@@ -137,7 +136,7 @@ body {
   }
 
   .visual-section {
-    display: none; /* Mobilde yerden tasarruf için resmi gizle */
+    display: none; 
   }
 
   .form-section {

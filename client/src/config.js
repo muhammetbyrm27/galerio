@@ -1,6 +1,5 @@
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-/** uploads/dosya.jpg veya eski tam yol → tam URL */
 export const getImageUrl = (photoPath) => {
   if (!photoPath) return null;
   if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {

@@ -24,7 +24,6 @@ const pool = mysql
   })
   .promise();
 
-// Fatal pool hatalarını logla — Render'da restart tetikler
 pool.on('error', (err) => {
   console.error('MySQL pool hatası:', err.code, err.fatal ? '(FATAL)' : '');
 });

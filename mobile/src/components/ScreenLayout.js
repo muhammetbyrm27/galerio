@@ -3,11 +3,7 @@ import { View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardDismissBar } from './KeyboardDismissView';
 
-/**
- * iPhone çentik / Dynamic Island — sekme ekranlarında üst başlıklar için.
- * SafeAreaView yerine doğrudan inset padding (Tab Navigator içinde daha güvenilir).
- * keyboardAware: arama / liste ekranlarında klavye kaçınma + Kapat çubuğu.
- */
+
 const ScreenLayout = ({ children, style, keyboardAware = false }) => {
   const insets = useSafeAreaInsets();
 

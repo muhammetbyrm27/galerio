@@ -12,7 +12,6 @@ code {
     monospace;
 }
 
-/* === GENEL MOBİL MİNAMALİZASYONU === */
 @media screen and (max-width: 768px) {
   html {
     font-size: 13px !important; 
@@ -24,7 +23,7 @@ code {
      display: block !important;
   }
   
-  /* Tüm padding ve marginleri biraz daraltarak minimal tutalım */
+  
   * {
     box-sizing: border-box;
   }

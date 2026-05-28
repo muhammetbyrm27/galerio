@@ -24,7 +24,7 @@ const { width } = Dimensions.get('window');
 
 const LoginScreen = () => {
   const navigation = useNavigation();
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
+  const [mode, setMode] = useState('login'); 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

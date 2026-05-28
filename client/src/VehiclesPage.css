@@ -196,7 +196,7 @@
   opacity: 1;
 }
 
-/* Tablo Stilleri */
+
 .table-card {
   background-color: var(--table-card-bg);
   border-radius: 16px;
@@ -230,9 +230,9 @@ table {
   border-collapse: collapse;
 }
 
-/* ESKİLERİN YERİNE BUNLARI YAPIŞTIR */
 
-/* Tüm hücreler için temel ayarlar */
+
+
 th, td {
   padding: 1rem;
   border: 1px solid var(--table-border-color);
@@ -240,16 +240,16 @@ th, td {
   white-space: nowrap;
 }
 
-/* SADECE BAŞLIK hücreleri için stil */
+
 thead th {
   background-color: var(--table-header-bg);
   color: var(--text-dark);
   font-weight: 600;
 }
 
-/* SADECE VERİ SATIRLARINDAKİ hücreler için stil */
+
 tbody td {
-  color: #dfe6e9; /* Daha aydınlık yazı rengi */
+  color: #dfe6e9; 
   font-weight: 500;
 }
 
@@ -257,13 +257,13 @@ tbody tr:hover {
   background-color: var(--table-card-hover-bg);
 }
 
-/* Fiyat sütunları için özel stil */
+
 .price-cell {
     font-weight: 600;
-    color: #ffffff; /* Fiyatları saf beyaz yaparak vurguluyoruz */
+    color: #ffffff; 
 }
 
-/* Açıklama sütununun çok genişlememesi için */
+
 .description-cell {
     white-space: normal;
     max-width: 250px;
@@ -304,7 +304,7 @@ tbody tr:hover .sticky-col {
     border-radius: 4px;
 }
 
-/* === MOBİL UYUMLULUK (RESPONSIVE) === */
+
 @media (max-width: 768px) {
   .vehicle-page-wrapper {
     padding: 1rem;

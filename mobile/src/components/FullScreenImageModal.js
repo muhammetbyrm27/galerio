@@ -18,7 +18,7 @@ import ZoomableImage from './ZoomableImage';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('screen');
 
-/** Modal dışı tam ekran galeri (tek Modal içinde kullanılır) */
+
 export function FullScreenImageGallery({ images = [], initialIndex = 0, title, onClose }) {
   const [index, setIndex] = useState(initialIndex);
   const [pagerScrollEnabled, setPagerScrollEnabled] = useState(true);

@@ -1,12 +1,7 @@
-/**
- * Yerel veritabanında admin hesabı oluşturur veya şifresini sıfırlar.
- * Kullanım: node scripts/ensure-admin.js
- */
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const bcrypt = require('bcryptjs');
 const mysql = require('mysql2/promise');
 
-// İsteğe bağlı: node scripts/ensure-admin.js sizin@email.com
 const cliEmail = process.argv[2];
 const ADMIN_EMAIL = cliEmail || process.env.ADMIN_EMAIL || 'admin@galerio.com';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123456';

@@ -1,8 +1,3 @@
-/**
- * MySQL SSL (Aiven / bulut). DB_SSL=true iken kullanilir.
- * DB_SSL_CA: Aiven CA sertifikasi (PEM, tek satirda \n ile de olabilir)
- * DB_SSL_REJECT_UNAUTHORIZED=false: zorla (varsayilan bulutta false)
- */
 function getDbSslConfig() {
   if (process.env.DB_SSL !== 'true') {
     return false;
@@ -21,7 +16,7 @@ function getDbSslConfig() {
     return { rejectUnauthorized: true };
   }
 
-  // Aiven + Render: CA dosyasi yoksa "self-signed certificate in chain" onlenir
+  
   return { rejectUnauthorized: false };
 }
 

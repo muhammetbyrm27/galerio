@@ -20,9 +20,7 @@ export const FORM_SCROLL_PROPS = {
   nestedScrollEnabled: true,
 };
 
-/**
- * Klavye açıkken altta "Kapat" çubuğu + dışarı dokununca klavyeyi indirir.
- */
+
 export function KeyboardDismissBar() {
   const [visible, setVisible] = useState(false);
 
@@ -66,7 +64,7 @@ export function FormKeyboardScrollView({ style, contentContainerStyle, children,
   );
 }
 
-/** Form alanları için returnKeyType / blurOnSubmit */
+
 export function getFieldKeyboardProps(index, total, { multiline = false, onDone } = {}) {
   if (multiline) {
     return {
@@ -91,9 +89,7 @@ export function getFieldKeyboardProps(index, total, { multiline = false, onDone 
   };
 }
 
-/**
- * Alt sayfa (bottom sheet) formları — klavye kaçınma, kaydırınca kapanma, Kapat çubuğu.
- */
+
 export function ModalFormShell({ visible, onClose, children, sheetStyle }) {
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>

@@ -1,10 +1,9 @@
-/* BU KODUN TAMAMINI KOPYALAYIP MEVCUT MarketValuePage.css DOSYANIZLA DEĞİŞTİRİN */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
 :root {
-    --page-bg-start: #1e293b; /* Koyu tema başlangıç rengi */
-    --page-bg-end: #111827;   /* Koyu tema bitiş rengi */
-    --card-bg: rgba(255, 255, 255, 0.05); /* Buzlu cam efekti için */
+    --page-bg-start: #1e293b; 
+    --page-bg-end: #111827;   
+    --card-bg: rgba(255, 255, 255, 0.05); 
     --text-light: #f1f5f9;
     --text-muted: #9ca3af;
     --border-color: rgba(255, 255, 255, 0.1);

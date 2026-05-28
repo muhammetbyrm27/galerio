@@ -41,13 +41,13 @@ function ChatModal({ vehicle, closeModal }) {
       setAdminUser(response.data);
     } catch (error) {
       console.error("Admin kullanıcı alınamadı, varsayılan ID=1 kullanılacak");
-      setAdminUser({ id: 1 }); // Fallback
+      setAdminUser({ id: 1 }); 
     } finally {
       setIsLoading(false);
     }
   };
 
-  // *** DÜZELTME: Conversation ID formatını standartlaştır (sadece _ kullan) ***
+  
   const conversationId = (currentUser && adminUser)
       ? `user_${currentUser.id}_vehicle_${vehicle.id}_admin_${adminUser.id}`
       : null;
@@ -55,7 +55,7 @@ function ChatModal({ vehicle, closeModal }) {
   console.log('🆔 Generated conversation ID:', conversationId);
 
   useEffect(() => {
-    // Eğer gerekli veriler henüz yüklenmediyse bekle
+    
     if (isLoading || !currentUser || !conversationId || !adminUser) return;
 
     const token = localStorage.getItem('token');
@@ -64,23 +64,23 @@ function ChatModal({ vehicle, closeModal }) {
       return;
     }
 
-    // Socket bağlantısını sağla
+    
     if (!socket.connected) {
       console.log('🔌 Socket bağlantısı kuruluyor...');
       socket.connect();
     }
 
-    // Önceki room'dan ayrıl
+    
     if (currentRoomRef.current && currentRoomRef.current !== conversationId) {
       console.log(`🚪 Eski room'dan ayrılıyor: ${currentRoomRef.current}`);
       socket.emit('leave_room', currentRoomRef.current);
     }
 
-    // Yeni room'a katıl
+    
     console.log(`🏠 Yeni room'a katılıyor: ${conversationId}`);
     currentRoomRef.current = conversationId;
 
-    // Mesajları temizle (yeni konuşma için)
+    
     setMessages([]);
 
     const onConnect = () => {
@@ -102,7 +102,7 @@ function ChatModal({ vehicle, closeModal }) {
       console.log('🔍 Mesaj conversation_id:', message.conversation_id);
       console.log('🔍 Mevcut conversation_id:', conversationId);
 
-      // *** SIKI GÜVENLİK KONTROLÜ: Tam eşleşme ***
+      
       if (message.conversation_id === conversationId) {
         console.log('✅ Mesaj bu conversation\'a ait, ekleniyor');
         setMessages((prev) => [...prev, message]);
@@ -118,7 +118,7 @@ function ChatModal({ vehicle, closeModal }) {
       setMessages((prev) => prev.filter(msg => msg.id !== messageId));
     };
 
-    // Socket event'lerini dinle
+    
     if (socket.connected) {
       onConnect();
     } else {
@@ -133,7 +133,7 @@ function ChatModal({ vehicle, closeModal }) {
     };
 
     socket.on('user_notifications_were_reset', handleNotificationsReset);
-    // Cleanup function
+    
     return () => {
       socket.off('connect', onConnect);
       socket.off('load_messages', handleLoadMessages);
@@ -143,7 +143,7 @@ function ChatModal({ vehicle, closeModal }) {
     };
   }, [currentUser, conversationId, adminUser, closeModal, isLoading]);
 
-  // Modal kapanırken room'dan ayrıl
+  
   useEffect(() => {
     return () => {
       if (currentRoomRef.current) {
@@ -196,7 +196,7 @@ function ChatModal({ vehicle, closeModal }) {
     }
   };
 
-  // Yükleme durumu
+  
   if (isLoading) {
     return (
         <div className="chat-modal-overlay" onClick={closeModal}>
