@@ -9,7 +9,7 @@ Müşteriler araç ilanlarını görüntüleyebilir, fiyat teklifi isteyebilir v
 
 | Uygulama | Link |
 |----------|------|
-| **Web (Kullanıcı & Admin)** | https://bayramlarauto.vercel.app |
+| **Web (Kullanıcı & Admin)** | https://galerio-pi.vercel.app |
 | **API (Render)** | https://bayramlarauto.onrender.com/api/health |
 | **Mobil APK (Android)** | `mobile/eas.json` üzerinden EAS Build ile üretilir |
 
