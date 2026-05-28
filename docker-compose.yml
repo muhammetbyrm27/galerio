@@ -113,11 +113,11 @@ services:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      test: ["CMD-SHELL", "ps aux | grep 'node worker.js' | grep -v grep || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
-      start_period: 60s
+      start_period: 30s
 
 volumes:
   mysql_data:
