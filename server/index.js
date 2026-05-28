@@ -294,7 +294,7 @@ app.post('/api/request-password-reset', async (req, res) => {
             [resetCode, user.id]
         );
 
-        const successMessage = '6 haneli doğrulama kodunu yöneticinizden isteyin ya da mail kutunuzu kontrol edin.';
+        const successMessage = 'Şifre sıfırlama kodu e-postanıza gönderildi. E-posta gelmezse yöneticinize başvurun.';
 
         if (!emailTransporter) {
             console.warn(`⚠️ E-posta servisi yapılandırılmamış.`);
@@ -329,7 +329,7 @@ app.post('/api/request-password-reset', async (req, res) => {
 
     } catch (err) {
         console.error("❌ Şifre sıfırlama isteği hatası:", err);
-        res.status(500).json({ message: '6 haneli doğrulama kodunu yöneticinizden isteyin ya da mail kutunuzu kontrol edin.' });
+        res.status(500).json({ message: 'Şifre sıfırlama kodu e-postanıza gönderildi. E-posta gelmezse yöneticinize başvurun.' });
     }
 });
 
