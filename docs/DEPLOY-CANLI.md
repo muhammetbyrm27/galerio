@@ -1,23 +1,31 @@
-# Canlı ortam — tek kaynak
+# Canlı Ortam — Deployment Mimarisi
 
-## Mimari
+## Genel Mimari
 
-| Katman | Adres |
-|--------|--------|
-| **Web** | https://galerio-pi.vercel.app |
-| **API** | https://bayramlarauto.onrender.com |
-| **MySQL** | Aiven (`defaultdb` veya `galerio`) |
-| **Fotoğraf** | Cloudinary |
-
-**Kullanmayın:** `galerio-xsmd.onrender.com` (eski servis; veri taşınana kadar sadece dump için)
-
-Detaylı analiz: `docs/CANLI-SISTEM-OZET.md`
+```
+Vercel (galerio-pi)         →    bayramlarauto.onrender.com    →    Aiven MySQL
+    Web istemcisi                       Node.js API                   Bulut veritabanı
+                                             ↓
+                                      Cloudinary
+                                  (Araç fotoğrafları)
+```
 
 ---
 
-## Render (bayramlarauto)
+## Servisler
 
-**Environment** (zorunlu):
+| Katman | Adres | Açıklama |
+|--------|-------|----------|
+| **Web Arayüzü** | https://galerio-pi.vercel.app | React — kullanıcı & admin paneli |
+| **API** | https://bayramlarauto.onrender.com | Node.js / Express — tüm iş mantığı |
+| **Veritabanı** | Aiven MySQL | Yönetilen bulut MySQL |
+| **Fotoğraf Depolama** | Cloudinary | Kalıcı araç fotoğrafları |
+
+---
+
+## Render — API Ortam Değişkenleri
+
+`bayramlarauto` servisinde tanımlanması gereken değişkenler:
 
 ```env
 DB_HOST=<aiven-host>
@@ -31,34 +39,53 @@ CLOUDINARY_CLOUD_NAME=...
 CLOUDINARY_API_KEY=...
 CLOUDINARY_API_SECRET=...
 
-JWT_SECRET=...
+JWT_SECRET=<guvenli-rastgele-deger>
 CLIENT_URL=*
 ```
 
-Sağlık: https://bayramlarauto.onrender.com/api/health
+Kaydet → **Manual Deploy** veya GitHub'a push ile otomatik deploy.
 
 ---
 
-## Vercel
+## Vercel — Web İstemcisi
+
+Vercel proje ayarları → **Environment Variables**:
 
 ```env
 REACT_APP_API_URL=https://bayramlarauto.onrender.com
 ```
 
-Değiştirdikten sonra **Redeploy** (Clear build cache önerilir).
+Değişiklik sonrası **Redeploy** gereklidir.
 
-Repoda: `client/.env.production`
-
----
-
-## Mobil
-
-`mobile/eas.json` → `EXPO_PUBLIC_API_URL=https://bayramlarauto.onrender.com`
-
-Değişiklikten sonra yeni EAS build.
+Repoda `client/.env.production` dosyası bu değeri içerir (build sırasında yedek).
 
 ---
 
-## Fotoğraflar
+## Mobil Uygulama
 
-Admin → `/admin/vehicles` → yeniden yükle. URL `res.cloudinary.com` olmalı.
+`mobile/eas.json` içinde API adresi tanımlıdır:
+
+```json
+"EXPO_PUBLIC_API_URL": "https://bayramlarauto.onrender.com"
+```
+
+API adresi değişirse yeni bir EAS Build alınması gerekir.
+
+---
+
+## Deployment Doğrulama
+
+```
+GET https://bayramlarauto.onrender.com/api/health
+```
+
+Beklenen yanıt:
+```json
+{
+  "status": "ok",
+  "database": "connected",
+  "redis": "connected",
+  "rabbitmq": "connected",
+  "photoStorage": "cloudinary"
+}
+```

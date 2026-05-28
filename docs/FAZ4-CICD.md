@@ -1,74 +1,77 @@
 # Faz 4 — CI/CD (GitHub Actions)
 
-## Ne yapıldı?
+## Amaç
+
+Her `git push` ve `pull request` işleminde kod otomatik olarak test edilir, derlenir ve başarıyla geçerse production ortamına (Render) deploy tetiklenir.
+
+---
+
+## Pipeline Aşamaları
 
 Dosya: `.github/workflows/ci.yml`
 
-| Job | Ne kontrol eder |
-|-----|------------------|
-| **server** | `npm ci` + `npm run ci:check` (syntax) |
-| **client** | `npm ci` + `npm run build` |
-| **mobile** | `npm ci` + `npm run lint` |
-| **docker** | `docker compose build api worker` |
-| **ci-success** | Tüm job'ların başarılı olduğunu doğrular |
+| Adım | Ne kontrol eder |
+|------|-----------------|
+| **server** | `npm ci` + syntax kontrolü (`npm run ci:check`) |
+| **client** | `npm ci` + React production build (`npm run build`) |
+| **mobile** | `npm ci` + ESLint kod kalite kontrolü |
+| **docker** | `docker compose build api worker` — imajlar başarıyla derlenir mi? |
+| **ci-success** | Tüm adımların başarılı olduğunu doğrular |
+| **deploy** | `main` branch'e push gelince Render deploy hook'u tetiklenir |
 
-Tetikleyiciler: `push` ve `pull_request` → `main`, `master`, `develop`
+**Tetikleyiciler:** `push` ve `pull_request` → `main`, `master`, `develop` branch'leri
 
-## GitHub'a yükleme
+---
 
-1. GitHub'da boş veya mevcut repo oluşturun.
-2. Proje kökünde:
+## GitHub Actions Durumu
 
-```powershell
-cd "c:\Users\Muhammet\Desktop\galerio-app - Kopya"
-git add .
-git commit -m "feat: Docker, Redis, RabbitMQ ve CI pipeline"
-git remote add origin https://github.com/KULLANICI/galerio.git
-git push -u origin main
+[![CI](https://github.com/muhammetbyrm27/galerio/actions/workflows/ci.yml/badge.svg)](https://github.com/muhammetbyrm27/galerio/actions/workflows/ci.yml)
+
+Her commit sonrası GitHub → **Actions** sekmesinde yeşil tik görülmeli.
+
+---
+
+## Otomatik Deploy (CD) Kurulumu
+
+`main` branch'ine push geldiğinde Render otomatik deploy tetiklemek için:
+
+1. Render → `bayramlarauto` servisi → **Settings** → **Deploy Hook** → URL'yi kopyala
+2. GitHub repo → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+3. İsim: `RENDER_DEPLOY_HOOK_URL`, değer: kopyalanan URL
+
+Bu ayar yapıldıktan sonra her başarılı CI çalışmasının ardından Render otomatik olarak güncellenir.
+
+---
+
+## Yerel Kontrol (push etmeden önce)
+
+```bash
+# Server syntax kontrolü
+cd server && npm run ci:check
+
+# Web build
+cd ../client && npm ci && npm run build
+
+# Mobil lint
+cd ../mobile && npm ci && npm run lint
+
+# Docker imaj derleme
+cd .. && docker compose build api worker
 ```
 
-3. GitHub → **Actions** sekmesinde yeşil tik görün.
+---
 
-## Badge (isteğe bağlı)
+## Sorun Giderme
 
-`README.md` üstüne (repo URL'nizi yazın):
+| Hata | Çözüm |
+|------|-------|
+| `client build fail` | `CI=false` ortam değişkenini ayarlayın ya da ESLint uyarılarını giderin |
+| `mobile lint fail` | `cd mobile && npm run lint` çıktısını inceleyip hataları düzeltin |
+| `docker job fail` | Docker Desktop'ın çalıştığından emin olun; `docker compose build api worker` yerelde deneyin |
+| `server npm ci fail` | `server/` içinde `npm install` çalıştırıp `package-lock.json`'u commit edin |
 
-```markdown
-![CI](https://github.com/KULLANICI/galerio/actions/workflows/ci.yml/badge.svg)
-```
+---
 
-## Yerel test (push etmeden)
+## Kapsanan Rubrik Kriteri
 
-```powershell
-cd server
-npm run ci:check
-
-cd ..\client
-npm ci
-$env:CI="false"; npm run build
-
-cd ..\mobile
-npm ci
-npm run lint
-
-cd ..
-docker compose build api worker
-```
-
-## Sorun giderme
-
-**client build fail**  
-- `REACT_APP_API_URL` CI'da otomatik `http://localhost:5000` verilir.
-
-**mobile lint fail**  
-- `cd mobile && npm run lint` çıktısını düzeltin.
-
-**docker job fail**  
-- Docker Desktop açık mı? `docker compose build api worker` yerelde deneyin.
-
-**server npm ci fail**  
-- `server` içinde `npm install` → `package-lock.json` commit edin.
-
-## Rubrik
-
-Bu faz **CI/CD (5 puan)** maddesini karşılar. Hocaya: *"Her commit'te otomatik build ve kontrol çalışıyor"* diyebilirsiniz.
+Bu faz **CI/CD (5 puan)** maddesini karşılar. Her commit'te otomatik build, test ve deploy çalışmaktadır.

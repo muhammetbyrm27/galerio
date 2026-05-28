@@ -1,143 +1,81 @@
-# Galerio — Bulut MySQL + Render (adım adım)
+# Veritabanı Kurulumu — Bulut MySQL (Aiven)
 
-Railway MySQL kapalıysa **Aiven ücretsiz MySQL** kullanın (kredi kartı gerekmez).
+Uygulama, yönetilen bulut MySQL servisi olarak [Aiven](https://aiven.io) kullanmaktadır.
 
 ---
 
-## Adım 1 — Yerel yedek (bilgisayarınızda) ✅
+## 1. Aiven Hesabı ve Servis Oluşturma
 
-Dosya oluşturuldu:
+1. https://console.aiven.io adresinden ücretsiz hesap oluşturun (Google veya GitHub ile giriş yapılabilir)
+2. **Create service** → **MySQL** seçin
+3. Plan: **Free** (1 GB RAM / 1 GB disk)
+4. Cloud provider & region: Yakın bir bölge seçin (örn. `aws-eu-central-1`)
+5. Service name: `galerio-mysql` → **Create service**
+6. Servis **Running** durumuna gelince **Overview** sekmesinde bağlantı bilgilerini not edin:
 
-`galerio-yedek.sql` (proje kök klasöründe)
+| Alan | Açıklama |
+|------|----------|
+| Host | `xxx.aivencloud.com` |
+| Port | (servisinize özel) |
+| User | `avnadmin` |
+| Password | (Aiven konsolundan kopyalayın) |
+| Database | `defaultdb` |
 
-Yeniden almak isterseniz (PowerShell):
+> **Not:** Aiven'de TLS/SSL zorunludur. Sunucu tarafında `DB_SSL=true` ayarlanmalıdır.
 
-```powershell
-& "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe" -u root -pmb123 --single-transaction galerio > "galerio-yedek.sql"
+---
+
+## 2. Veritabanı Şemasının Oluşturulması
+
+Yerel Docker ortamında şema `docker/mysql/init.sql` dosyasından otomatik oluşturulur.
+
+Bulut ortamı için şemayı elle uygulamak isterseniz:
+
+```bash
+mysql -h <aiven-host> -P <port> -u avnadmin -p \
+  --ssl-mode=REQUIRED defaultdb < docker/mysql/init.sql
 ```
 
----
-
-## Adım 2 — Aiven’de ücretsiz MySQL
-
-1. Tarayıcıda açın: https://console.aiven.io/signup  
-   (Google veya GitHub ile giriş yeterli.)
-
-2. **Create service** → **MySQL** seçin.
-
-3. Plan: **Free** (1 GB RAM / 1 GB disk).
-
-4. **Cloud provider & region:** Size yakın bir bölge (ör. `aws-eu-central-1`).
-
-5. Service name: örn. `galerio-mysql` → **Create service**.
-
-6. Servis **Running** olunca servise tıklayın → **Overview** sekmesi.
-
-7. Şu bilgileri bir yere not edin (Connection information):
-
-   | Alan | Örnek |
-   |------|--------|
-   | Host | `galerio-mysql-xxxxx.a.aivencloud.com` |
-   | Port | `12345` (sizde farklı olur) |
-   | User | `avnadmin` |
-   | Password | (göster / kopyala) |
-   | Database | `defaultdb` |
-
-8. **SSL:** Aiven’de TLS zorunludur → Render’da `DB_SSL=true` kullanacağız.
-
-**Adım 2 bittiğinde** bu 5 değeri (host, port, user, password, database adı) not edin; bir sonraki adımda SQL yedeğini bu sunucuya yükleyeceğiz.
+Uygulama ilk başlatıldığında `server/scripts/ensure-admin.js` çalışır ve varsayılan admin kullanıcısı otomatik olarak oluşturulur.
 
 ---
 
-## Adım 3 — Yedeği bulut MySQL’e aktarma
+## 3. Render Ortam Değişkenleri
 
-### Seçenek A — MySQL Workbench (kolay)
-
-1. [MySQL Workbench](https://dev.mysql.com/downloads/workbench/) kurulu değilse kurun.
-2. **+** → yeni bağlantı:
-   - Hostname: Aiven **Host**
-   - Port: Aiven **Port**
-   - Username: `avnadmin`
-   - Password: Aiven şifresi
-   - **SSL:** Required → Aiven konsolundan CA sertifikasını indirip Workbench’e ekleyin (servis → **Connection information** → CA certificate).
-3. Bağlan → **Server** → **Data Import** → **Import from Self-Contained File** → `galerio-yedek.sql` seçin → **Start Import**.
-
-### Seçenek B — Komut satırı
-
-Aiven’den `ca.pem` indirin, sonra (yolları kendi değerlerinizle değiştirin):
-
-```powershell
-& "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" `
-  -h HOST.aivencloud.com -P PORT -u avnadmin -p `
-  --ssl-mode=VERIFY_CA --ssl-ca=ca.pem `
-  defaultdb < galerio-yedek.sql
-```
-
-İsterseniz önce boş veritabanı oluşturun:
-
-```sql
-CREATE DATABASE IF NOT EXISTS galerio;
-```
-
-Sonra Render’da `DB_NAME=galerio` yazın ve dump’ı `galerio` veritabanına import edin.
-
----
-
-## Adım 4 — Render (bayramlarauto) ortam değişkenleri
-
-Render → **bayramlarauto** → **Environment**:
+Render → `bayramlarauto` → **Environment** sekmesine aşağıdaki değişkenleri ekleyin:
 
 | Değişken | Değer |
-|----------|--------|
-| `DB_HOST` | Aiven host (localhost **değil**) |
-| `DB_PORT` | Aiven port |
+|----------|-------|
+| `DB_HOST` | Aiven host adresi |
+| `DB_PORT` | Aiven port numarası |
 | `DB_USER` | `avnadmin` |
 | `DB_PASSWORD` | Aiven şifresi |
-| `DB_NAME` | `galerio` veya `defaultdb` (import ettiğiniz ad) |
+| `DB_NAME` | `defaultdb` |
 | `DB_SSL` | `true` |
-
-Cloudinary değişkenlerini **silmeden** bırakın:
-
-- `CLOUDINARY_CLOUD_NAME`
-- `CLOUDINARY_API_KEY`
-- `CLOUDINARY_API_SECRET`
-
-Kaydet → **Manual Deploy** (veya otomatik deploy).
 
 ---
 
-## Adım 5 — Kontrol
+## 4. Bağlantıyı Doğrulama
 
-Tarayıcıda:
+Render deploy tamamlandıktan sonra:
 
-https://bayramlarauto.onrender.com/api/health
+```
+GET https://bayramlarauto.onrender.com/api/health
+```
 
-Beklenen:
-
+Beklenen yanıt:
 ```json
 {
+  "status": "ok",
   "database": "connected",
   "photoStorage": "cloudinary"
 }
 ```
 
-`database: disconnected` görürseniz host/port/şifre/SSL’i tekrar kontrol edin.
-
 ---
 
-## Adım 6 — Fotoğraflar
+## 5. Yerel Geliştirme
 
-Eski `uploads/` dosyaları Render’da kalıcı değildi. Admin panelden (Vercel: https://galerio-pi.vercel.app) araç fotoğraflarını **yeniden yükleyin**; Cloudinary’de kalır.
+Yerel ortamda Docker Compose kullanılır (`docker compose up -d --build`). MySQL, Redis ve RabbitMQ servisleri otomatik olarak başlatılır.
 
----
-
-## Adım 7 — Vercel ve mobil
-
-- Vercel `REACT_APP_API_URL` = `https://bayramlarauto.onrender.com`
-- Mobil `EXPO_PUBLIC_API_URL` aynı adres (yeniden build gerekir)
-
----
-
-## Railway’i geri açmak ister misiniz?
-
-Eski Railway projesi trial bittiği için kapalı. Ücretli plan veya yeni hesap gerekir; pratikte **Aiven Free** bu proje için yeterlidir.
+`server/.env` örnek dosyası için `server/.env.example` dosyasına bakın.

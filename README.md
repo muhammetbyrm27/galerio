@@ -1,5 +1,7 @@
 # Galerio — Araç Galerisi Yönetim Sistemi
 
+[![CI](https://github.com/muhammetbyrm27/galerio/actions/workflows/ci.yml/badge.svg)](https://github.com/muhammetbyrm27/galerio/actions/workflows/ci.yml)
+
 Araç galerisi için geliştirilmiş tam yığınlı (full-stack) bir yönetim uygulaması.  
 Müşteriler araç ilanlarını görüntüleyebilir, fiyat teklifi isteyebilir ve admin ile gerçek zamanlı mesajlaşabilir.
 
@@ -156,8 +158,33 @@ galerio-app/
 ├── docker-compose.yml   # Tüm servisler (MySQL, Redis, RabbitMQ, API, Worker)
 ├── .github/workflows/
 │   └── ci.yml           # GitHub Actions CI/CD pipeline
-└── docs/                # Faz dokümantasyonları
+├── docs/                # Faz teknik dokümantasyonları
+└── dokumantasyon/       # Proje analiz ve API tasarım dökümanları
 ```
+
+---
+
+## Dokümantasyon
+
+### Teknik Faz Dökümanları
+
+| Faz | Konu | Dosya |
+|-----|------|-------|
+| 1 | Docker kurulumu | [docs/FAZ1-DOCKER.md](docs/FAZ1-DOCKER.md) |
+| 2 | Redis önbellek | [docs/FAZ2-REDIS.md](docs/FAZ2-REDIS.md) |
+| 3 | RabbitMQ kuyruğu | [docs/FAZ3-RABBITMQ.md](docs/FAZ3-RABBITMQ.md) |
+| 4 | CI/CD pipeline | [docs/FAZ4-CICD.md](docs/FAZ4-CICD.md) |
+| — | Fotoğraf depolama | [docs/CLOUDINARY.md](docs/CLOUDINARY.md) |
+| — | Mobil APK / mağaza | [docs/MOBIL-UYGULAMA-YAYIN.md](docs/MOBIL-UYGULAMA-YAYIN.md) |
+| — | Canlı ortam mimarisi | [docs/DEPLOY-CANLI.md](docs/DEPLOY-CANLI.md) |
+| — | Veritabanı kurulumu | [docs/ADIM-ADIM-VERITABANI.md](docs/ADIM-ADIM-VERITABANI.md) |
+
+### Proje Analiz Dökümanları
+
+| Doküman | Dosya |
+|---------|-------|
+| Gereksinim Analizi | [dokumantasyon/Gereksinim_Analizi.md](dokumantasyon/Gereksinim_Analizi.md) |
+| REST API Tasarım Dökümanı | [dokumantasyon/API_Tasarim_Dokumani.md](dokumantasyon/API_Tasarim_Dokumani.md) |
 
 ---
 

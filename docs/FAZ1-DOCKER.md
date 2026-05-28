@@ -1,96 +1,101 @@
-# Faz 1 — Docker kurulumu
+# Faz 1 — Docker Kurulumu
 
 ## Gereksinimler
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) kurulu ve çalışıyor olmalı
 
-## Adım adım çalıştırma
+## Çalıştırma
 
-### 1. Proje köküne geçin
+### 1. Container'ları derleyin ve başlatın
 
-```powershell
-cd "c:\Users\Muhammet\Desktop\galerio-app - Kopya"
-```
-
-### 2. Container’ları derleyin ve başlatın
-
-```powershell
+```bash
 docker compose up -d --build
 ```
 
-İlk seferde MySQL şeması `docker/mysql/init.sql` ile oluşur (1–2 dk sürebilir).
+İlk çalıştırmada MySQL şeması `docker/mysql/init.sql` ile otomatik oluşturulur (1–2 dakika sürebilir).
 
-### 3. Durumu kontrol edin
+### 2. Durumu kontrol edin
 
-```powershell
+```bash
 docker compose ps
 docker compose logs api --tail 30
 ```
 
-API hazır olduğunda:
-
-```powershell
-curl http://localhost:5000/api/health
-```
-
-Beklenen: `{"status":"ok","database":"connected",...}`
-
-### 4. Mobil uygulamayı bağlayın
-
-`mobile/.env`:
+API hazır olduğunda aşağıdaki endpoint'e istek atın:
 
 ```
-EXPO_PUBLIC_API_URL=http://BILGISAYAR_IP:5000
+GET http://localhost:5000/api/health
 ```
 
-- Emülatör Android: `http://10.0.2.2:5000`
-- Gerçek telefon (aynı Wi‑Fi): `http://192.168.x.x:5000` (`ipconfig` ile IP)
+Beklenen yanıt: `{"status":"ok","database":"connected",...}`
 
-Expo’yu yeniden başlatın: `npx expo start --lan`
+### 3. Mobil uygulamayı Docker API'sine bağlayın
 
-### 5. Giriş hesapları (Docker seed)
+`mobile/.env` dosyasına bilgisayarın yerel IP adresini girin:
 
-| Rol   | E-posta              | Şifre        |
-|-------|----------------------|--------------|
-| Admin | admin@galerio.com    | admin123456  |
+```
+EXPO_PUBLIC_API_URL=http://192.168.x.x:5000
+```
 
-Kullanıcı: mobil uygulamadan **Kayıt ol** ile oluşturulur.
+- Android Emülatör: `http://10.0.2.2:5000`
+- Gerçek cihaz (aynı Wi-Fi ağında): `ipconfig` komutuyla IP'nizi öğrenin
+
+Expo'yu yeniden başlatın: `npx expo start --lan`
+
+### 4. Varsayılan giriş hesapları
+
+| Rol | E-posta | Şifre |
+|-----|---------|-------|
+| Admin | admin@galerio.com | admin123456 |
+
+Kullanıcı kaydı mobil veya web arayüzünden yapılabilir.
+
+---
 
 ## Servisler
 
-| Servis    | Adres                         |
-|-----------|-------------------------------|
-| API       | http://localhost:5000         |
-| MySQL     | localhost:3306                |
-| Redis     | localhost:6379 (Faz 2)        |
-| RabbitMQ  | http://localhost:15672 (Faz 3) — kullanıcı: `galerio` / `galerio` |
+| Servis | Adres |
+|--------|-------|
+| API | http://localhost:5000 |
+| MySQL | localhost:3307 |
+| Redis | localhost:6379 |
+| RabbitMQ Yönetim Paneli | http://localhost:15672 (kullanıcı: `galerio` / şifre: `galerio`) |
+
+---
 
 ## Sık kullanılan komutlar
 
-```powershell
+```bash
 # Durdur
 docker compose down
 
-# Durdur + veritabanı sil (sıfırdan kurulum)
+# Durdur ve veritabanını sıfırla
 docker compose down -v
 
-# Sadece API logları
+# Yalnızca API loglarını izle
 docker compose logs -f api
+
+# Yalnızca API container'ını yeniden derle
+docker compose up -d --build api
 ```
+
+---
 
 ## Sorun giderme
 
-**API `database: disconnected`**
-- `docker compose logs mysql` — MySQL healthy mi?
-- `docker compose restart api`
+**API `database: disconnected` dönüyorsa**
+- `docker compose logs mysql` ile MySQL'in sağlıklı (healthy) olup olmadığını kontrol edin
+- `docker compose restart api` komutunu çalıştırın
 
-**Port 3306 veya 5000 dolu**
-- Yerel MySQL/Node kapatın veya `docker-compose.yml` portlarını değiştirin.
+**Port çakışması (3306 veya 5000 kullanımda)**
+- Yerel MySQL veya Node.js servislerini durdurun ya da `docker-compose.yml` içindeki port değerlerini değiştirin
 
-**Mobil API’ye ulaşamıyor**
-- Windows güvenlik duvarında 5000 portuna izin verin.
-- Telefon ve PC aynı ağda olmalı.
+**Mobil cihaz API'ye ulaşamıyorsa**
+- Güvenlik duvarında 5000 portuna izin verin
+- Telefon ve bilgisayar aynı Wi-Fi ağında olmalı
 
-## Rubrik
+---
 
-Bu faz **Docker (10 puan)** maddesini karşılar. Redis ve RabbitMQ container’ları Faz 2–3 için hazırdır.
+## Kapsanan Rubrik Kriteri
+
+Bu faz **Docker (10 puan)** maddesini karşılar. Redis ve RabbitMQ container'ları Faz 2 ve Faz 3 için hazır hâlde bu compose dosyasına dahildir.
