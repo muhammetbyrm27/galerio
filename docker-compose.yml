@@ -14,11 +14,11 @@ services:
       - mysql_data:/var/lib/mysql
       - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      test: ["CMD", "mysql", "-h", "127.0.0.1", "-ugalerio", "-pgalerio", "galerio", "-e", "SELECT 1"]
       interval: 5s
       timeout: 5s
-      retries: 12
-      start_period: 30s
+      retries: 20
+      start_period: 45s
 
   redis:
     image: redis:7-alpine

@@ -1,8 +1,8 @@
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const mysql = require('mysql2/promise');
 
-const MAX_ATTEMPTS = 30;
-const DELAY_MS = 2000;
+const MAX_ATTEMPTS = 40;
+const DELAY_MS = 3000;
 
 const { getDbSslConfig } = require('../lib/dbSsl');
 
